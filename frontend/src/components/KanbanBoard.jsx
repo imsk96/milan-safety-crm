@@ -42,7 +42,6 @@ export default function KanbanBoard({ type = 'tasks' }) {
 
   useEffect(() => {
     fetchItems()
-    // Subscribe to realtime changes
     const unsubscribe = api.subscribe(type, () => {
       fetchItems()
     })
@@ -77,10 +76,8 @@ export default function KanbanBoard({ type = 'tasks' }) {
     const overColumn = over.data?.current?.column || over.id
 
     if (activeItem.status !== overColumn) {
-      // Update status in DB
       try {
         await api.update(type, activeItem.id, { status: overColumn })
-        // Optimistic update
         setItems((prev) =>
           prev.map((item) =>
             item.id === activeItem.id ? { ...item, status: overColumn } : item
@@ -143,55 +140,5 @@ export default function KanbanBoard({ type = 'tasks' }) {
         ) : null}
       </DragOverlay>
     </DndContext>
-  )
-}
-
-// Create KanbanColumn.jsx
-export function KanbanColumn({ title, count, children }) {
-  return (
-    <div className="flex-shrink-0 w-80 glass rounded-xl p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold">{title}</h3>
-        <span className="text-sm bg-white/30 dark:bg-gray-800/50 px-2 py-1 rounded-full">
-          {count}
-        </span>
-      </div>
-      <div className="space-y-3 min-h-[200px]">{children}</div>
-    </div>
-  )
-}
-
-// Create KanbanCard.jsx
-export function KanbanCard({ item, type }) {
-  const { useSortable } = require('@dnd-kit/sortable')
-  const { CSS } = require('@dnd-kit/utilities')
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  }
-
-  const getTitle = () => {
-    if (type === 'leads') return item.company_name
-    if (type === 'tasks') return item.task
-    if (type === 'dispatch') return item.party_name
-    return item.party_name || item.task
-  }
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className="glass bg-white/10 dark:bg-gray-800/20 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:shadow-lg transition-shadow"
-    >
-      <p className="font-medium text-sm mb-1">{getTitle()}</p>
-      <div className="flex items-center justify-between text-xs opacity-70">
-        <span>{item.assigned_to || 'Unassigned'}</span>
-        {item.due_date && <span>{new Date(item.due_date).toLocaleDateString()}</span>}
-      </div>
-    </div>
   )
 }
