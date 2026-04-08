@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'   // ✅ Added Link
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '../store/authStore'
 import toast from 'react-hot-toast'
-import { Lock, User } from 'lucide-react'
+import { Lock, Mail } from 'lucide-react'   // ✅ Mail import added
 
 export default function Login() {
-  const [loginId, setLoginId] = useState('')
+  const [email, setEmail] = useState('')      // Changed from loginId to email
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const { signIn } = useAuthStore()
@@ -16,7 +16,7 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     try {
-      await signIn(loginId, password)
+      await signIn(email, password)           // Pass email directly
       navigate('/dashboard')
     } catch (error) {
       toast.error(error.message)
@@ -45,15 +45,15 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-2">Login ID</label>
+              <label className="block text-sm font-medium mb-2">Email</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
-                  type="text"
-                  value={loginId}
-                  onChange={(e) => setLoginId(e.target.value)}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 glass bg-white/10 dark:bg-gray-800/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter your login ID"
+                  placeholder="you@company.com"
                   required
                 />
               </div>
@@ -83,7 +83,6 @@ export default function Login() {
             </button>
           </form>
 
-          {/* ✅ Signup Link Added */}
           <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
             Don't have an account?{' '}
             <Link to="/signup" className="text-blue-600 hover:underline font-medium">

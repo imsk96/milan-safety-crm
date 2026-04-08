@@ -27,9 +27,7 @@ export const useAuthStore = create((set, get) => ({
     return data
   },
 
-  signIn: async (loginId, password) => {
-    // Map login_id to email format used in Supabase Auth
-    const email = `${loginId}@milan-safety.internal`
+  signIn: async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,

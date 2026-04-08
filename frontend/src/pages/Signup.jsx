@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
-import { Building2, User, Lock, AtSign } from 'lucide-react';
+import { Building2, User, Lock, AtSign, Mail } from 'lucide-react';
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     companyName: '',
     adminName: '',
-    loginId: '',
+    email: '',           // real email
     password: '',
     tagName: '',
   });
@@ -29,10 +29,9 @@ export default function Signup() {
         .single();
       if (companyError) throw companyError;
 
-      // 2. Sign up the user (internal email mapping)
-      const email = `${formData.loginId}@milan-safety.internal`;
+      // 2. Sign up with real email
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+        email: formData.email,
         password: formData.password,
       });
       if (authError) throw authError;
@@ -45,14 +44,14 @@ export default function Signup() {
         .insert({
           id: authData.user.id,
           name: formData.adminName,
-          login_id: formData.loginId,
+          login_id: formData.email.split('@')[0], // use email prefix as login_id (optional)
           role: 'admin',
           tag_name: tag,
           company_id: company.id,
         });
       if (profileError) throw profileError;
 
-      toast.success('Account created! Please login.');
+      toast.success('Account created! Please check your email to confirm (if required).');
       navigate('/login');
     } catch (error) {
       toast.error(error.message);
@@ -100,16 +99,16 @@ export default function Signup() {
               </div>
             </div>
             <div>
-              <label className="block text-sm mb-1">Login ID</label>
+              <label className="block text-sm mb-1">Email</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={formData.loginId}
-                  onChange={(e) => setFormData({ ...formData, loginId: e.target.value.toLowerCase() })}
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-10 pr-4 py-2 glass bg-white/10 rounded-lg"
-                  placeholder="admin"
+                  placeholder="you@company.com"
                 />
               </div>
             </div>
