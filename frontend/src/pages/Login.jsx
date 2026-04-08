@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'   // ✅ Added Link
 import { motion } from 'framer-motion'
 import { useAuthStore } from '../store/authStore'
 import toast from 'react-hot-toast'
@@ -83,8 +83,12 @@ export default function Login() {
             </button>
           </form>
 
+          {/* ✅ Signup Link Added */}
           <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-            Default admin: admin / admin123
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-blue-600 hover:underline font-medium">
+              Create company account
+            </Link>
           </p>
         </div>
       </motion.div>

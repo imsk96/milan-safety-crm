@@ -16,7 +16,7 @@ export const useAuthStore = create((set, get) => ({
   fetchProfile: async (userId) => {
     const { data, error } = await supabase
       .from('users')
-      .select('*')
+      .select('*, company_id')
       .eq('id', userId)
       .single()
     if (error) {

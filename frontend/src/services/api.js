@@ -1,8 +1,15 @@
 import { supabase } from '../lib/supabaseClient'
+import { useAuthStore } from '../store/authStore'
 
 // Universal CRUD service
 export const api = {
   async create(table, data) {
+    // Auto-add company_id from logged-in user's profile (if applicable)
+    const profile = useAuthStore.getState().profile
+    if (profile?.company_id && table !== 'companies' && table !== 'settings') {
+      data.company_id = profile.company_id
+    }
+
     const { data: result, error } = await supabase
       .from(table)
       .insert(data)
@@ -46,7 +53,7 @@ export const api = {
 
   // Real-time subscription helper
   subscribe(table, callback, filter = {}) {
-    let subscription = supabase
+    const subscription = supabase
       .channel(`public:${table}`)
       .on('postgres_changes', { event: '*', schema: 'public', table, filter }, callback)
       .subscribe()
