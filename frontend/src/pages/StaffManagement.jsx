@@ -6,12 +6,13 @@ import { useAuthStore } from '../store/authStore'
 import toast from 'react-hot-toast'
 
 export default function StaffManagement() {
-  const { createStaff, profile } = useAuthStore()
+  const { createStaff, deleteStaff, profile } = useAuthStore()
   const [staff, setStaff] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingStaff, setEditingStaff] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
   const [formData, setFormData] = useState({
     name: '',
     login_id: '',
@@ -59,7 +60,6 @@ export default function StaffManagement() {
     setSubmitting(true)
     try {
       if (editingStaff) {
-        // Edit mode — update existing staff
         await api.update('users', editingStaff.id, {
           name: formData.name,
           login_id: formData.login_id,
@@ -67,7 +67,6 @@ export default function StaffManagement() {
         })
         toast.success('Staff updated successfully')
       } else {
-        // Create mode
         await createStaff(formData)
         toast.success('Staff created successfully')
       }
@@ -86,11 +85,15 @@ export default function StaffManagement() {
   const handleDelete = async (staffId, staffName) => {
     if (!confirm(`Are you sure you want to remove "${staffName}"?`)) return
     try {
-      await api.delete('users', staffId)
+      setDeletingId(staffId)
+      await deleteStaff(staffId)
       toast.success('Staff member removed')
       fetchStaff()
     } catch (error) {
-      toast.error('Failed to remove staff member')
+      console.error('Delete error:', error)
+      toast.error(error.message || 'Failed to remove staff member')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -156,10 +159,15 @@ export default function StaffManagement() {
                       </button>
                       <button
                         onClick={() => handleDelete(s.id, s.name)}
-                        className="p-1.5 hover:text-red-500 transition-colors"
+                        disabled={deletingId === s.id}
+                        className="p-1.5 hover:text-red-500 transition-colors disabled:opacity-40"
                         title="Remove staff"
                       >
-                        <Trash2 size={16} />
+                        {deletingId === s.id ? (
+                          <span className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin inline-block" />
+                        ) : (
+                          <Trash2 size={16} />
+                        )}
                       </button>
                     </td>
                   )}
@@ -170,7 +178,6 @@ export default function StaffManagement() {
         )}
       </GlassCard>
 
-      {/* Create / Edit Modal */}
       {showForm && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"

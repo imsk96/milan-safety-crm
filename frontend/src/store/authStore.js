@@ -78,24 +78,17 @@ export const useAuthStore = create((set, get) => ({
     })
   },
 
-  // Staff create karo - Supabase Admin API ke zariye
   createStaff: async ({ name, login_id, password, tag_name }) => {
     const profile = get().profile
     if (!profile?.company_id) throw new Error('Company not found')
 
-    // Email banao login_id se
     const email = `${login_id.toLowerCase().replace(/\s+/g, '.')}@staff.internal`
 
-    // Supabase auth mein user banao
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          name,
-          tag_name,
-          role: 'staff',
-        },
+        data: { name, tag_name, role: 'staff' },
       },
     })
 
@@ -104,8 +97,6 @@ export const useAuthStore = create((set, get) => ({
     const newUserId = authData.user?.id
     if (!newUserId) throw new Error('User creation failed')
 
-    // Manually users table mein insert karo
-    // (trigger ne already kiya hoga, but agar nahi kiya toh)
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
@@ -123,20 +114,35 @@ export const useAuthStore = create((set, get) => ({
       })
       if (insertError) throw insertError
     } else {
-      // Update karo company_id aur role agar trigger ne already insert kiya ho
       const { error: updateError } = await supabase
         .from('users')
-        .update({
-          name,
-          login_id,
-          tag_name,
-          role: 'staff',
-          company_id: profile.company_id,
-        })
+        .update({ name, login_id, tag_name, role: 'staff', company_id: profile.company_id })
         .eq('id', newUserId)
       if (updateError) throw updateError
     }
 
     return { id: newUserId, name, login_id, tag_name, role: 'staff' }
+  },
+
+  // ✅ NEW: Staff delete via Edge Function
+  deleteStaff: async (staffId) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Not authenticated')
+
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-staff`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ staffId }),
+      }
+    )
+
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error || 'Delete failed')
+    return true
   },
 }))
