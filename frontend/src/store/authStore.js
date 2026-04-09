@@ -19,33 +19,23 @@ export const useAuthStore = create((set, get) => ({
         .from('users')
         .select('*')
         .eq('id', userId)
-        .maybeSingle(); // Use maybeSingle to avoid throwing on no rows
+        .maybeSingle()
 
-      if (error) throw error;
+      if (error) throw error
 
       if (data) {
-        set({ profile: data });
-        return data;
+        set({ profile: data })
+        return data
       } else {
-        // If no profile exists, but user is authenticated (shouldn't happen in normal flow)
-        console.warn('No profile found for user, creating temporary profile');
-        const tempProfile = {
-          id: userId,
-          name: 'User',
-          login_id: get().user?.email?.split('@')[0] || 'user',
-          role: 'staff',
-          tag_name: '@user',
-          company_id: null,
-        };
-        set({ profile: tempProfile });
-        return tempProfile;
+        console.warn('No profile found for user:', userId)
+        set({ profile: null })
+        return null
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      toast.error('Could not load profile');
-      // Still set a fallback so app doesn't break completely
-      set({ profile: null });
-      return null;
+      console.error('Error fetching profile:', error)
+      toast.error('Could not load profile')
+      set({ profile: null })
+      return null
     }
   },
 
@@ -53,46 +43,100 @@ export const useAuthStore = create((set, get) => ({
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    });
-    if (error) throw error;
-    
-    set({ user: data.user, session: data.session });
-    await get().fetchProfile(data.user.id);
-    toast.success('Welcome back!');
-    return data;
+    })
+    if (error) throw error
+    set({ user: data.user, session: data.session })
+    await get().fetchProfile(data.user.id)
+    toast.success('Welcome back!')
+    return data
   },
 
   signOut: async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    set({ user: null, profile: null, session: null });
-    toast.success('Logged out');
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+    set({ user: null, profile: null, session: null })
+    toast.success('Logged out')
   },
 
   initialize: async () => {
-    set({ loading: true });
-    const { data: { session } } = await supabase.auth.getSession();
-    set({ session });
+    set({ loading: true })
+    const { data: { session } } = await supabase.auth.getSession()
+    set({ session })
     if (session?.user) {
-      set({ user: session.user });
-      await get().fetchProfile(session.user.id);
+      set({ user: session.user })
+      await get().fetchProfile(session.user.id)
     }
-    set({ loading: false });
+    set({ loading: false })
 
-    // Listen for auth changes
     supabase.auth.onAuthStateChange(async (_event, session) => {
-      set({ session, user: session?.user ?? null });
+      set({ session, user: session?.user ?? null })
       if (session?.user) {
-        await get().fetchProfile(session.user.id);
+        await get().fetchProfile(session.user.id)
       } else {
-        set({ profile: null });
+        set({ profile: null })
       }
-    });
+    })
   },
 
-  // Admin: create staff user (will be used inside app)
+  // Staff create karo - Supabase Admin API ke zariye
   createStaff: async ({ name, login_id, password, tag_name }) => {
-    const email = `${login_id}@milan-safety.internal`; // Keep for staff creation if needed
-    // ... existing code if any, or implement properly
+    const profile = get().profile
+    if (!profile?.company_id) throw new Error('Company not found')
+
+    // Email banao login_id se
+    const email = `${login_id.toLowerCase().replace(/\s+/g, '.')}@staff.internal`
+
+    // Supabase auth mein user banao
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          tag_name,
+          role: 'staff',
+        },
+      },
+    })
+
+    if (authError) throw authError
+
+    const newUserId = authData.user?.id
+    if (!newUserId) throw new Error('User creation failed')
+
+    // Manually users table mein insert karo
+    // (trigger ne already kiya hoga, but agar nahi kiya toh)
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('id', newUserId)
+      .maybeSingle()
+
+    if (!existingUser) {
+      const { error: insertError } = await supabase.from('users').insert({
+        id: newUserId,
+        name,
+        login_id,
+        tag_name,
+        role: 'staff',
+        company_id: profile.company_id,
+      })
+      if (insertError) throw insertError
+    } else {
+      // Update karo company_id aur role agar trigger ne already insert kiya ho
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          name,
+          login_id,
+          tag_name,
+          role: 'staff',
+          company_id: profile.company_id,
+        })
+        .eq('id', newUserId)
+      if (updateError) throw updateError
+    }
+
+    return { id: newUserId, name, login_id, tag_name, role: 'staff' }
   },
-}));
+}))

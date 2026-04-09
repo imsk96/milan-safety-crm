@@ -11,8 +11,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     leads: { total: 0, new: 0, working: 0, closed: 0 },
     tasks: { total: 0, pending: 0, working: 0, done: 0 },
-    dispatch: { total: 0 },
-    visits: { total: 0 },
+    dispatch: { total: 0, pending: 0, working: 0, done: 0 },
+    visits: { total: 0, pending: 0, working: 0, done: 0 },
   })
   const [recentActivities, setRecentActivities] = useState([])
 
@@ -43,8 +43,18 @@ export default function Dashboard() {
           working: tasks.filter(t => t.status === 'Working').length,
           done: tasks.filter(t => t.status === 'Done').length,
         },
-        dispatch: { total: dispatch.length },
-        visits: { total: visits.length },
+        dispatch: {
+          total: dispatch.length,
+          pending: dispatch.filter(d => d.status === 'Pending').length,
+          working: dispatch.filter(d => d.status === 'Working').length,
+          done: dispatch.filter(d => d.status === 'Done').length,
+        },
+        visits: {
+          total: visits.length,
+          pending: visits.filter(v => v.status === 'Pending').length,
+          working: visits.filter(v => v.status === 'Working').length,
+          done: visits.filter(v => v.status === 'Done').length,
+        },
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
@@ -52,7 +62,6 @@ export default function Dashboard() {
   }
 
   const fetchRecentActivities = async () => {
-    // Combine recent items from all tables
     try {
       const [leads, tasks] = await Promise.all([
         api.get('leads', { order: { column: 'created_at', ascending: false }, limit: 5 }),
@@ -83,43 +92,67 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        {/* Leads Card */}
         <GlassCard className="flex items-center justify-between">
           <div>
             <p className="text-sm opacity-70">Total Leads</p>
             <p className="text-3xl font-bold">{stats.leads.total}</p>
             <p className="text-xs mt-1">
-              <span className="text-green-500">{stats.leads.new} new</span> · {stats.leads.working} working
+              <span className="text-green-500">{stats.leads.new} new</span>
+              {' · '}
+              <span className="text-yellow-500">{stats.leads.working} working</span>
             </p>
           </div>
           <Users size={32} className="text-blue-500 opacity-70" />
         </GlassCard>
 
+        {/* Tasks Card */}
         <GlassCard className="flex items-center justify-between">
           <div>
             <p className="text-sm opacity-70">Total Tasks</p>
             <p className="text-3xl font-bold">{stats.tasks.total}</p>
             <p className="text-xs mt-1">
-              {stats.tasks.pending} pending · {stats.tasks.done} done
+              <span className="text-yellow-500">{stats.tasks.pending} pending</span>
+              {' · '}
+              <span className="text-green-500">{stats.tasks.done} done</span>
             </p>
           </div>
           <ClipboardList size={32} className="text-green-500 opacity-70" />
         </GlassCard>
 
+        {/* Dispatch Card */}
         <GlassCard className="flex items-center justify-between">
           <div>
             <p className="text-sm opacity-70">Dispatch</p>
             <p className="text-3xl font-bold">{stats.dispatch.total}</p>
+            <p className="text-xs mt-1">
+              <span className="text-yellow-500">{stats.dispatch.pending} pending</span>
+              {' · '}
+              <span className="text-blue-400">{stats.dispatch.working} working</span>
+              {' · '}
+              <span className="text-green-500">{stats.dispatch.done} done</span>
+            </p>
           </div>
           <Truck size={32} className="text-yellow-500 opacity-70" />
         </GlassCard>
 
+        {/* Visits Card */}
         <GlassCard className="flex items-center justify-between">
           <div>
             <p className="text-sm opacity-70">Visits</p>
             <p className="text-3xl font-bold">{stats.visits.total}</p>
+            <p className="text-xs mt-1">
+              <span className="text-yellow-500">{stats.visits.pending} pending</span>
+              {' · '}
+              <span className="text-blue-400">{stats.visits.working} working</span>
+              {' · '}
+              <span className="text-green-500">{stats.visits.done} done</span>
+            </p>
           </div>
           <CalendarCheck size={32} className="text-purple-500 opacity-70" />
         </GlassCard>
+
       </div>
 
       {/* Charts Row */}
@@ -148,9 +181,9 @@ export default function Dashboard() {
               <PieChart>
                 <Pie
                   data={[
-                    { name: 'New', value: stats.leads.new },
-                    { name: 'Working', value: stats.leads.working },
-                    { name: 'Closed', value: stats.leads.closed },
+                    { name: 'New', value: stats.leads.new || 0 },
+                    { name: 'Working', value: stats.leads.working || 0 },
+                    { name: 'Closed', value: stats.leads.closed || 0 },
                   ]}
                   cx="50%"
                   cy="50%"
@@ -159,7 +192,7 @@ export default function Dashboard() {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {chartData.map((entry, index) => (
+                  {[0, 1, 2].map((index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -174,21 +207,28 @@ export default function Dashboard() {
       <GlassCard>
         <h3 className="text-lg font-semibold mb-4">Recent Activities</h3>
         <div className="space-y-2">
-          {recentActivities.map((activity) => (
-            <div key={activity.id} className="flex items-center justify-between py-2 border-b border-white/10 last:border-0">
-              <div>
-                <p className="font-medium">
-                  {activity.type === 'lead' ? activity.company_name : activity.task}
-                </p>
-                <p className="text-sm opacity-70">
-                  {activity.type} · {activity.status}
-                </p>
+          {recentActivities.length === 0 ? (
+            <p className="text-center py-4 opacity-50">No recent activities</p>
+          ) : (
+            recentActivities.map((activity) => (
+              <div
+                key={activity.id}
+                className="flex items-center justify-between py-2 border-b border-white/10 last:border-0"
+              >
+                <div>
+                  <p className="font-medium">
+                    {activity.type === 'lead' ? activity.company_name : activity.task}
+                  </p>
+                  <p className="text-sm opacity-70">
+                    {activity.type} · {activity.status}
+                  </p>
+                </div>
+                <span className="text-sm opacity-70">
+                  {new Date(activity.created_at).toLocaleDateString()}
+                </span>
               </div>
-              <span className="text-sm opacity-70">
-                {new Date(activity.created_at).toLocaleDateString()}
-              </span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </GlassCard>
 

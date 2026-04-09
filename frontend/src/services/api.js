@@ -1,14 +1,14 @@
 import { supabase } from '../lib/supabaseClient'
 import { useAuthStore } from '../store/authStore'
 
-// Universal CRUD service
+const activeChannels = new Map()
+
 export const api = {
   async create(table, data) {
     const profile = useAuthStore.getState().profile
     if (profile?.company_id && table !== 'companies' && table !== 'settings') {
       data.company_id = profile.company_id
     }
-
     const { data: result, error } = await supabase
       .from(table)
       .insert(data)
@@ -27,6 +27,9 @@ export const api = {
     }
     if (query.order) {
       req = req.order(query.order.column, { ascending: query.order.ascending ?? true })
+    }
+    if (query.limit) {
+      req = req.limit(query.limit)
     }
     const { data, error } = await req
     if (error) throw error
@@ -50,22 +53,35 @@ export const api = {
     return true
   },
 
-  // ✅ Fixed: Unique channel name + pehle remove karo agar already exist kare
   subscribe(table, callback, filter = {}) {
-    // Unique channel name banao - timestamp se ensure karo koi conflict na ho
-    const channelName = `public:${table}:${Date.now()}`
+    // Agar pehle se channel hai toh pehle hatao
+    if (activeChannels.has(table)) {
+      const old = activeChannels.get(table)
+      supabase.removeChannel(old)
+      activeChannels.delete(table)
+    }
 
     const channel = supabase
-      .channel(channelName)
+      .channel(`realtime-${table}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table, ...(Object.keys(filter).length ? { filter } : {}) },
+        {
+          event: '*',
+          schema: 'public',
+          table,
+          ...(Object.keys(filter).length ? { filter } : {}),
+        },
         callback
       )
       .subscribe()
 
+    activeChannels.set(table, channel)
+
     return () => {
-      supabase.removeChannel(channel)
+      if (activeChannels.has(table)) {
+        supabase.removeChannel(activeChannels.get(table))
+        activeChannels.delete(table)
+      }
     }
   },
 }
