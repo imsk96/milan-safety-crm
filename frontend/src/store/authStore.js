@@ -7,6 +7,7 @@ export const useAuthStore = create((set, get) => ({
   profile: null,
   session: null,
   loading: true,
+  _isCreatingStaff: false, // ✅ flag to block auth state change during staff creation
 
   setSession: (session) => set({ session }),
   setUser: (user) => set({ user }),
@@ -69,6 +70,9 @@ export const useAuthStore = create((set, get) => ({
     set({ loading: false })
 
     supabase.auth.onAuthStateChange(async (_event, session) => {
+      // ✅ Staff creation ke dauran auth change ignore karo
+      if (get()._isCreatingStaff) return
+
       set({ session, user: session?.user ?? null })
       if (session?.user) {
         await get().fetchProfile(session.user.id)
@@ -82,51 +86,73 @@ export const useAuthStore = create((set, get) => ({
     const profile = get().profile
     if (!profile?.company_id) throw new Error('Company not found')
 
-    const email = `${login_id.toLowerCase().replace(/\s+/g, '.')}@staff.internal`
+    // ✅ Admin ka session aur profile save karo
+    const adminUser = get().user
+    const adminProfile = get().profile
+    const { data: { session: adminSession } } = await supabase.auth.getSession()
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name, tag_name, role: 'staff' },
-      },
-    })
+    // ✅ Flag set karo — auth state change block karo
+    set({ _isCreatingStaff: true })
 
-    if (authError) throw authError
+    try {
+      const email = `${login_id.toLowerCase().replace(/\s+/g, '.')}@staff.internal`
 
-    const newUserId = authData.user?.id
-    if (!newUserId) throw new Error('User creation failed')
-
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('id', newUserId)
-      .maybeSingle()
-
-    if (!existingUser) {
-      const { error: insertError } = await supabase.from('users').insert({
-        id: newUserId,
-        name,
-        login_id,
-        tag_name,
-        role: 'staff',
-        company_id: profile.company_id,
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name, tag_name, role: 'staff' },
+        },
       })
-      if (insertError) throw insertError
-    } else {
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ name, login_id, tag_name, role: 'staff', company_id: profile.company_id })
-        .eq('id', newUserId)
-      if (updateError) throw updateError
-    }
 
-    return { id: newUserId, name, login_id, tag_name, role: 'staff' }
+      if (authError) throw authError
+
+      const newUserId = authData.user?.id
+      if (!newUserId) throw new Error('User creation failed')
+
+      // ✅ Admin session restore karo turant
+      await supabase.auth.setSession({
+        access_token: adminSession.access_token,
+        refresh_token: adminSession.refresh_token,
+      })
+
+      // ✅ Admin state restore karo
+      set({ user: adminUser, profile: adminProfile, session: adminSession })
+
+      // Staff profile insert/update karo
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', newUserId)
+        .maybeSingle()
+
+      if (!existingUser) {
+        const { error: insertError } = await supabase.from('users').insert({
+          id: newUserId,
+          name,
+          login_id,
+          tag_name,
+          role: 'staff',
+          company_id: profile.company_id,
+        })
+        if (insertError) throw insertError
+      } else {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ name, login_id, tag_name, role: 'staff', company_id: profile.company_id })
+          .eq('id', newUserId)
+        if (updateError) throw updateError
+      }
+
+      return { id: newUserId, name, login_id, tag_name, role: 'staff' }
+
+    } finally {
+      // ✅ Flag hamesha clear karo — error ho ya success
+      set({ _isCreatingStaff: false })
+    }
   },
 
-  // ✅ NEW: Staff delete via Edge Function
   deleteStaff: async (staffId) => {
-    console.log('SUPABASE URL:', import.meta.env.VITE_SUPABASE_URL)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) throw new Error('Not authenticated')
 
