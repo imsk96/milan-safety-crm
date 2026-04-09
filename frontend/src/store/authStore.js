@@ -7,7 +7,7 @@ export const useAuthStore = create((set, get) => ({
   profile: null,
   session: null,
   loading: true,
-  _isCreatingStaff: false, // ✅ flag to block auth state change during staff creation
+  _isCreatingStaff: false,
 
   setSession: (session) => set({ session }),
   setUser: (user) => set({ user }),
@@ -70,7 +70,7 @@ export const useAuthStore = create((set, get) => ({
     set({ loading: false })
 
     supabase.auth.onAuthStateChange(async (_event, session) => {
-      // ✅ Staff creation ke dauran auth change ignore karo
+      // Staff creation ke dauran auth change ignore karo
       if (get()._isCreatingStaff) return
 
       set({ session, user: session?.user ?? null })
@@ -86,22 +86,31 @@ export const useAuthStore = create((set, get) => ({
     const profile = get().profile
     if (!profile?.company_id) throw new Error('Company not found')
 
-    // ✅ Admin ka session aur profile save karo
+    // Admin ka session aur profile save karo
     const adminUser = get().user
     const adminProfile = get().profile
     const { data: { session: adminSession } } = await supabase.auth.getSession()
 
-    // ✅ Flag set karo — auth state change block karo
+    // Flag set karo — auth state change block karo
     set({ _isCreatingStaff: true })
 
     try {
-      const email = `${login_id.toLowerCase().replace(/\s+/g, '.')}@staff.internal`
+      // Login ID process karo — spaces ko dots se replace karo
+      const processedLoginId = login_id.toLowerCase().replace(/\s+/g, '.')
+      const email = `${processedLoginId}@staff.internal`
 
+      // ✅ Trigger ko metadata mein sab kuch do — wahi profile banayega
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { name, tag_name, role: 'staff' },
+          data: {
+            name,
+            tag_name,
+            role: 'staff',
+            login_id: processedLoginId,   // ✅ trigger ke liye
+            company_id: profile.company_id, // ✅ trigger ke liye
+          },
         },
       })
 
@@ -110,44 +119,35 @@ export const useAuthStore = create((set, get) => ({
       const newUserId = authData.user?.id
       if (!newUserId) throw new Error('User creation failed')
 
-      // ✅ Admin session restore karo turant
+      // ✅ Admin session turant restore karo
       await supabase.auth.setSession({
         access_token: adminSession.access_token,
         refresh_token: adminSession.refresh_token,
       })
-
-      // ✅ Admin state restore karo
       set({ user: adminUser, profile: adminProfile, session: adminSession })
 
-      // Staff profile insert/update karo
-      const { data: existingUser } = await supabase
+      // ✅ Plain password store karo (admin reference ke liye)
+      // Trigger ne profile create kar diya, hum sirf password update karein
+      const { error: pwdError } = await supabase
         .from('users')
-        .select('id')
+        .update({ plain_password: password })
         .eq('id', newUserId)
-        .maybeSingle()
 
-      if (!existingUser) {
-        const { error: insertError } = await supabase.from('users').insert({
-          id: newUserId,
-          name,
-          login_id,
-          tag_name,
-          role: 'staff',
-          company_id: profile.company_id,
-        })
-        if (insertError) throw insertError
-      } else {
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ name, login_id, tag_name, role: 'staff', company_id: profile.company_id })
-          .eq('id', newUserId)
-        if (updateError) throw updateError
+      if (pwdError) {
+        console.warn('Could not save staff password hint:', pwdError)
+        // Non-fatal — staff still created successfully
       }
 
-      return { id: newUserId, name, login_id, tag_name, role: 'staff' }
+      return {
+        id: newUserId,
+        name,
+        login_id: processedLoginId,
+        tag_name,
+        role: 'staff',
+      }
 
     } finally {
-      // ✅ Flag hamesha clear karo — error ho ya success
+      // Flag hamesha clear karo
       set({ _isCreatingStaff: false })
     }
   },

@@ -51,7 +51,6 @@ export default function Settings() {
     const file = e.target.files[0]
     if (!file) return
 
-    // File size check - 5MB limit
     if (file.size > 5 * 1024 * 1024) {
       toast.error('File too large. Max 5MB allowed.')
       return
@@ -72,8 +71,9 @@ export default function Settings() {
         .from('backgrounds')
         .getPublicUrl(fileName)
 
+      // ✅ updateBackground ab internally company_id leta hai authStore se
       await updateBackground(publicUrl)
-      toast.success('Background updated successfully')
+      toast.success('Background updated — all staff will see this!')
     } catch (error) {
       toast.error('Upload failed: ' + error.message)
     } finally {
@@ -188,7 +188,9 @@ export default function Settings() {
           {/* Background Image */}
           <div>
             <p className="font-medium mb-1">Background Image</p>
-            <p className="text-sm opacity-60 mb-3">Upload a custom background for your dashboard</p>
+            <p className="text-sm opacity-60 mb-3">
+              Upload a background — all staff in your company will see it too
+            </p>
 
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <input

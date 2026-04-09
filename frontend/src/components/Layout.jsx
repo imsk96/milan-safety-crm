@@ -1,11 +1,21 @@
+import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import TopNav from './TopNav'
 import { useAppStore } from '../store/appStore'
+import { useAuthStore } from '../store/authStore'
 import { motion } from 'framer-motion'
 
 export default function Layout() {
-  const { backgroundImage, darkMode } = useAppStore()
+  const { backgroundImage, darkMode, fetchBackground } = useAppStore()
+  const { profile } = useAuthStore()
+
+  // ✅ Profile load hone ke baad company-specific background fetch karo
+  useEffect(() => {
+    if (profile?.company_id) {
+      fetchBackground(profile.company_id)
+    }
+  }, [profile?.company_id])
 
   return (
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
