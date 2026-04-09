@@ -46,16 +46,7 @@ export default function LeadForm({ lead, onClose, onSuccess }) {
 
   const fetchStaff = async () => {
     try {
-      if (!profile?.company_id) return
-
-      const { data, error } = await api.get('users', {
-        eq: {
-          company_id: profile.company_id,
-        },
-      })
-
-      if (error) throw error
-
+      const data = await api.get('users')
       // sirf staff + admin dono allow (so dropdown empty na rahe)
       const filtered = (data || []).filter(
         (user) => user.role === 'staff' || user.role === 'admin'
