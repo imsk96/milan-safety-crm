@@ -126,6 +126,7 @@ export const useAuthStore = create((set, get) => ({
 
   // ✅ NEW: Staff delete via Edge Function
   deleteStaff: async (staffId) => {
+    console.log('SUPABASE URL:', import.meta.env.VITE_SUPABASE_URL)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) throw new Error('Not authenticated')
 
