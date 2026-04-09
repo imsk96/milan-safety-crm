@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import GlassCard from '../components/GlassCard'
-import { Plus, Trash2, Edit2, User, X, Save } from 'lucide-react'
+import { Plus, Trash2, Edit2, User, X, Save, Copy, Check, Eye, EyeOff } from 'lucide-react'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import toast from 'react-hot-toast'
@@ -13,6 +13,9 @@ export default function StaffManagement() {
   const [editingStaff, setEditingStaff] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
+  const [newCredentials, setNewCredentials] = useState(null) // ✅ naye staff credentials
+  const [showPassword, setShowPassword] = useState(false)
+  const [copied, setCopied] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     login_id: '',
@@ -20,9 +23,7 @@ export default function StaffManagement() {
     tag_name: '',
   })
 
-  useEffect(() => {
-    fetchStaff()
-  }, [])
+  useEffect(() => { fetchStaff() }, [])
 
   const fetchStaff = async () => {
     try {
@@ -49,9 +50,14 @@ export default function StaffManagement() {
     setShowForm(true)
   }
 
+  const handleCopy = (text, key) => {
+    navigator.clipboard.writeText(text)
+    setCopied(key)
+    setTimeout(() => setCopied(''), 2000)
+  }
+
   const handleSubmit = async () => {
     if (submitting) return
-
     if (!formData.name.trim()) return toast.error('Name is required')
     if (!formData.login_id.trim()) return toast.error('Login ID is required')
     if (!editingStaff && formData.password.length < 6) return toast.error('Password must be at least 6 characters')
@@ -66,14 +72,23 @@ export default function StaffManagement() {
           tag_name: formData.tag_name,
         })
         toast.success('Staff updated successfully')
+        setShowForm(false)
+        setEditingStaff(null)
+        setFormData({ name: '', login_id: '', password: '', tag_name: '' })
+        setTimeout(() => fetchStaff(), 800)
       } else {
         await createStaff(formData)
-        toast.success('Staff created successfully')
+        // ✅ Credentials save karo dikhane ke liye
+        setNewCredentials({
+          name: formData.name,
+          login_id: formData.login_id,
+          password: formData.password,
+          email: `${formData.login_id.toLowerCase().replace(/\s+/g, '.')}@staff.internal`,
+        })
+        setShowForm(false)
+        setFormData({ name: '', login_id: '', password: '', tag_name: '' })
+        setTimeout(() => fetchStaff(), 800)
       }
-      setShowForm(false)
-      setEditingStaff(null)
-      setFormData({ name: '', login_id: '', password: '', tag_name: '' })
-      setTimeout(() => fetchStaff(), 800)
     } catch (error) {
       console.error('Staff submit error:', error)
       toast.error(error.message || 'Operation failed')
@@ -178,6 +193,83 @@ export default function StaffManagement() {
         )}
       </GlassCard>
 
+      {/* ✅ New Staff Credentials Modal */}
+      {newCredentials && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="glass-card w-full max-w-md p-6 rounded-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-xl font-bold text-green-400">✅ Staff Created!</h2>
+                <p className="text-sm opacity-60 mt-1">Share these credentials with {newCredentials.name}</p>
+              </div>
+              <button
+                onClick={() => setNewCredentials(null)}
+                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {/* Login ID */}
+              <div className="p-3 glass bg-white/10 rounded-lg">
+                <p className="text-xs opacity-50 mb-1">Login ID</p>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono font-medium">{newCredentials.login_id}</span>
+                  <button
+                    onClick={() => handleCopy(newCredentials.login_id, 'login_id')}
+                    className="p-1.5 hover:text-blue-400 transition-colors flex-shrink-0"
+                  >
+                    {copied === 'login_id' ? <Check size={15} className="text-green-400" /> : <Copy size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Password */}
+              <div className="p-3 glass bg-white/10 rounded-lg">
+                <p className="text-xs opacity-50 mb-1">Password</p>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono font-medium">
+                    {showPassword ? newCredentials.password : '••••••••'}
+                  </span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="p-1.5 hover:text-blue-400 transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                    <button
+                      onClick={() => handleCopy(newCredentials.password, 'password')}
+                      className="p-1.5 hover:text-blue-400 transition-colors"
+                    >
+                      {copied === 'password' ? <Check size={15} className="text-green-400" /> : <Copy size={15} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Copy All */}
+              <button
+                onClick={() => handleCopy(
+                  `Login ID: ${newCredentials.login_id}\nPassword: ${newCredentials.password}`,
+                  'all'
+                )}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                {copied === 'all' ? <Check size={16} /> : <Copy size={16} />}
+                {copied === 'all' ? 'Copied!' : 'Copy All Credentials'}
+              </button>
+
+              <p className="text-xs opacity-40 text-center">
+                ⚠️ Save these credentials — password won't be shown again
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create / Edit Modal */}
       {showForm && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"

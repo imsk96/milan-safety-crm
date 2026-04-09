@@ -16,26 +16,44 @@ export const useAppStore = create((set, get) => ({
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
   fetchBackground: async () => {
-    const { data } = await supabase
-      .from('settings')
-      .select('background_image_url')
-      .eq('id', 1)
-      .single()
-    if (data?.background_image_url) {
-      set({ backgroundImage: data.background_image_url })
+    try {
+      const { data } = await supabase
+        .from('settings')
+        .select('background_image_url')
+        .maybeSingle()
+      if (data?.background_image_url) {
+        set({ backgroundImage: data.background_image_url })
+      } else {
+        set({ backgroundImage: null })
+      }
+    } catch (e) {
+      console.warn('fetchBackground error:', e)
     }
   },
 
   updateBackground: async (url) => {
-    const { error } = await supabase
+    // Pehle check karo row hai ya nahi
+    const { data: existing } = await supabase
       .from('settings')
-      .upsert({ id: 1, background_image_url: url })
-    if (error) throw error
+      .select('id')
+      .maybeSingle()
+
+    if (existing) {
+      const { error } = await supabase
+        .from('settings')
+        .update({ background_image_url: url })
+        .eq('id', existing.id)
+      if (error) throw error
+    } else {
+      const { error } = await supabase
+        .from('settings')
+        .insert({ background_image_url: url })
+      if (error) throw error
+    }
     set({ backgroundImage: url })
   },
 
   initialize: () => {
-    // Apply dark mode from storage
     const isDark = get().darkMode
     document.documentElement.classList.toggle('dark', isDark)
     get().fetchBackground()

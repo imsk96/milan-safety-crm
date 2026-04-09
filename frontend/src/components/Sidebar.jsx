@@ -19,7 +19,7 @@ const navItems = [
   { path: '/dispatch', icon: Truck, label: 'Dispatch', roles: ['admin', 'staff'] },
   { path: '/visits', icon: CalendarCheck, label: 'Visits', roles: ['admin', 'staff'] },
   { path: '/staff', icon: UserPlus, label: 'Staff', roles: ['admin'] },
-  { path: '/settings', icon: Settings, label: 'Settings', roles: ['admin', 'staff'] },
+  { path: '/settings', icon: Settings, label: 'Settings', roles: ['admin'] },
 ]
 
 export default function Sidebar() {
