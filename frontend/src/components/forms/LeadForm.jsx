@@ -23,7 +23,10 @@ export default function LeadForm({ lead, onClose, onSuccess }) {
   })
 
   useEffect(() => {
-    fetchStaff()
+    if (profile?.company_id) {
+      fetchStaff()
+    }
+
     if (lead) {
       setFormData({
         company_name: lead.company_name || '',
@@ -39,11 +42,30 @@ export default function LeadForm({ lead, onClose, onSuccess }) {
         status: lead.status || 'New',
       })
     }
-  }, [lead])
+  }, [lead, profile])
 
   const fetchStaff = async () => {
-    const { data } = await api.get('users', { eq: { role: 'staff' } })
-    setStaffList(data || [])
+    try {
+      if (!profile?.company_id) return
+
+      const { data, error } = await api.get('users', {
+        eq: {
+          company_id: profile.company_id,
+        },
+      })
+
+      if (error) throw error
+
+      // sirf staff + admin dono allow (so dropdown empty na rahe)
+      const filtered = (data || []).filter(
+        (user) => user.role === 'staff' || user.role === 'admin'
+      )
+
+      setStaffList(filtered)
+    } catch (err) {
+      console.error('fetchStaff error:', err)
+      toast.error('Failed to load staff list')
+    }
   }
 
   const handleSubmit = async (e) => {
