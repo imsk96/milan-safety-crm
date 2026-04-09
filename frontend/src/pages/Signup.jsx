@@ -11,7 +11,7 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     companyName: '',
     adminName: '',
-    email: '',           // real email
+    email: '',
     password: '',
     tagName: '',
   });
@@ -21,37 +21,28 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      // 1. Create company
-      const { data: company, error: companyError } = await supabase
-        .from('companies')
-        .insert({ name: formData.companyName })
-        .select('id')
-        .single();
-      if (companyError) throw companyError;
+      // Format tag name to always start with @
+      const tag = formData.tagName.startsWith('@') ? formData.tagName : `@${formData.tagName}`;
 
-      // 2. Sign up with real email
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Sign up the user. The database trigger will automatically:
+      // 1. Create a new company with the provided name.
+      // 2. Insert the user profile into the public.users table.
+      const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
+        options: {
+          data: {
+            name: formData.adminName,
+            company_name: formData.companyName,
+            tag_name: tag,
+          },
+        },
       });
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Signup failed');
 
-      // 3. Insert user profile with company_id
-      const tag = formData.tagName.startsWith('@') ? formData.tagName : `@${formData.tagName}`;
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          name: formData.adminName,
-          login_id: formData.email.split('@')[0], // use email prefix as login_id (optional)
-          role: 'admin',
-          tag_name: tag,
-          company_id: company.id,
-        });
-      if (profileError) throw profileError;
+      if (error) throw error;
+      if (!data.user) throw new Error('Signup failed');
 
-      toast.success('Account created! Please check your email to confirm (if required).');
+      toast.success('Account created! You can now log in.');
       navigate('/login');
     } catch (error) {
       toast.error(error.message);
