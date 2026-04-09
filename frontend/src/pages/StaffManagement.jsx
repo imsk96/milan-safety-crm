@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import GlassCard from '../components/GlassCard'
-import { Plus, Trash2, User } from 'lucide-react'
+import { Plus, Trash2, Edit2, User, X, Save } from 'lucide-react'
 import { api } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import toast from 'react-hot-toast'
@@ -10,6 +10,7 @@ export default function StaffManagement() {
   const [staff, setStaff] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [editingStaff, setEditingStaff] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -25,10 +26,7 @@ export default function StaffManagement() {
   const fetchStaff = async () => {
     try {
       setLoading(true)
-      // Same company ke saare staff fetch karo
-      const data = await api.get('users', {
-        eq: { role: 'staff' },
-      })
+      const data = await api.get('users', { eq: { role: 'staff' } })
       setStaff(data || [])
     } catch (error) {
       console.error('Fetch staff error:', error)
@@ -38,34 +36,55 @@ export default function StaffManagement() {
     }
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const openCreateForm = () => {
+    setEditingStaff(null)
+    setFormData({ name: '', login_id: '', password: '', tag_name: '' })
+    setShowForm(true)
+  }
+
+  const openEditForm = (s) => {
+    setEditingStaff(s)
+    setFormData({ name: s.name || '', login_id: s.login_id || '', password: '', tag_name: s.tag_name || '' })
+    setShowForm(true)
+  }
+
+  const handleSubmit = async () => {
     if (submitting) return
 
-    // Validation
     if (!formData.name.trim()) return toast.error('Name is required')
     if (!formData.login_id.trim()) return toast.error('Login ID is required')
-    if (formData.password.length < 6) return toast.error('Password must be at least 6 characters')
+    if (!editingStaff && formData.password.length < 6) return toast.error('Password must be at least 6 characters')
     if (!formData.tag_name.trim()) return toast.error('Tag name is required')
 
     setSubmitting(true)
     try {
-      await createStaff(formData)
-      toast.success('Staff member created successfully')
+      if (editingStaff) {
+        // Edit mode — update existing staff
+        await api.update('users', editingStaff.id, {
+          name: formData.name,
+          login_id: formData.login_id,
+          tag_name: formData.tag_name,
+        })
+        toast.success('Staff updated successfully')
+      } else {
+        // Create mode
+        await createStaff(formData)
+        toast.success('Staff created successfully')
+      }
       setShowForm(false)
+      setEditingStaff(null)
       setFormData({ name: '', login_id: '', password: '', tag_name: '' })
-      // Thoda wait karo phir fetch karo (trigger time leta hai)
-      setTimeout(() => fetchStaff(), 1000)
+      setTimeout(() => fetchStaff(), 800)
     } catch (error) {
-      console.error('Create staff error:', error)
-      toast.error(error.message || 'Failed to create staff')
+      console.error('Staff submit error:', error)
+      toast.error(error.message || 'Operation failed')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleDelete = async (staffId) => {
-    if (!confirm('Are you sure you want to remove this staff member?')) return
+  const handleDelete = async (staffId, staffName) => {
+    if (!confirm(`Are you sure you want to remove "${staffName}"?`)) return
     try {
       await api.delete('users', staffId)
       toast.success('Staff member removed')
@@ -79,12 +98,14 @@ export default function StaffManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Staff Management</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-        >
-          <Plus size={18} /> Add Staff
-        </button>
+        {profile?.role === 'admin' && (
+          <button
+            onClick={openCreateForm}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            <Plus size={18} /> Add Staff
+          </button>
+        )}
       </div>
 
       <GlassCard>
@@ -127,7 +148,14 @@ export default function StaffManagement() {
                   {profile?.role === 'admin' && (
                     <td className="py-3 px-4 text-right">
                       <button
-                        onClick={() => handleDelete(s.id)}
+                        onClick={() => openEditForm(s)}
+                        className="p-1.5 hover:text-blue-400 transition-colors mr-1"
+                        title="Edit staff"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(s.id, s.name)}
                         className="p-1.5 hover:text-red-500 transition-colors"
                         title="Remove staff"
                       >
@@ -142,7 +170,7 @@ export default function StaffManagement() {
         )}
       </GlassCard>
 
-      {/* Create Staff Modal */}
+      {/* Create / Edit Modal */}
       {showForm && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
@@ -152,10 +180,24 @@ export default function StaffManagement() {
             className="glass-card w-full max-w-md p-6 rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-xl font-bold mb-2">Create Staff Account</h2>
-            <p className="text-sm opacity-60 mb-5">
-              Staff will log in using their Login ID and password.
-            </p>
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-xl font-bold">
+                  {editingStaff ? 'Edit Staff' : 'Create Staff Account'}
+                </h2>
+                {!editingStaff && (
+                  <p className="text-sm opacity-60 mt-1">
+                    Staff will log in using their Login ID and password.
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => !submitting && setShowForm(false)}
+                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
             <div className="space-y-4">
               <div>
@@ -166,7 +208,6 @@ export default function StaffManagement() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 />
               </div>
 
@@ -178,24 +219,26 @@ export default function StaffManagement() {
                   value={formData.login_id}
                   onChange={(e) => setFormData({ ...formData, login_id: e.target.value })}
                   className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 />
-                <p className="text-xs opacity-40 mt-1">
-                  Login email will be: {formData.login_id || 'loginid'}@staff.internal
-                </p>
+                {!editingStaff && (
+                  <p className="text-xs opacity-40 mt-1">
+                    Login email: {formData.login_id || 'loginid'}@staff.internal
+                  </p>
+                )}
               </div>
 
-              <div>
-                <label className="block text-sm mb-1 opacity-70">Password *</label>
-                <input
-                  type="password"
-                  placeholder="Min. 6 characters"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
+              {!editingStaff && (
+                <div>
+                  <label className="block text-sm mb-1 opacity-70">Password *</label>
+                  <input
+                    type="password"
+                    placeholder="Min. 6 characters"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm mb-1 opacity-70">Tag Name *</label>
@@ -205,16 +248,12 @@ export default function StaffManagement() {
                   value={formData.tag_name}
                   onChange={(e) => setFormData({ ...formData, tag_name: e.target.value })}
                   className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 />
-                <p className="text-xs opacity-40 mt-1">
-                  Used in task assignment dropdowns
-                </p>
+                <p className="text-xs opacity-40 mt-1">Used in task assignment dropdowns</p>
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
                 <button
-                  type="button"
                   onClick={() => !submitting && setShowForm(false)}
                   disabled={submitting}
                   className="px-4 py-2 glass rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
@@ -222,7 +261,6 @@ export default function StaffManagement() {
                   Cancel
                 </button>
                 <button
-                  type="button"
                   onClick={handleSubmit}
                   disabled={submitting}
                   className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
@@ -230,10 +268,13 @@ export default function StaffManagement() {
                   {submitting ? (
                     <>
                       <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Creating...
+                      {editingStaff ? 'Saving...' : 'Creating...'}
                     </>
                   ) : (
-                    'Create Staff'
+                    <>
+                      {editingStaff ? <Save size={16} /> : <Plus size={16} />}
+                      {editingStaff ? 'Save Changes' : 'Create Staff'}
+                    </>
                   )}
                 </button>
               </div>

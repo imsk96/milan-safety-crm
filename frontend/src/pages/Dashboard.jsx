@@ -11,8 +11,8 @@ export default function Dashboard() {
   const [stats, setStats] = useState({
     leads: { total: 0, new: 0, working: 0, closed: 0 },
     tasks: { total: 0, pending: 0, working: 0, done: 0 },
-    dispatch: { total: 0, pending: 0, working: 0, done: 0 },
-    visits: { total: 0, pending: 0, working: 0, done: 0 },
+    dispatch: { total: 0, pending: 0, working: 0, delivered: 0 },
+    visits: { total: 0, scheduled: 0, working: 0, done: 0 },
   })
   const [recentActivities, setRecentActivities] = useState([])
 
@@ -47,11 +47,11 @@ export default function Dashboard() {
           total: dispatch.length,
           pending: dispatch.filter(d => d.status === 'Pending').length,
           working: dispatch.filter(d => d.status === 'Working').length,
-          done: dispatch.filter(d => d.status === 'Done').length,
+          delivered: dispatch.filter(d => d.status === 'Delivered').length,
         },
         visits: {
           total: visits.length,
-          pending: visits.filter(v => v.status === 'Pending').length,
+          scheduled: visits.filter(v => v.status === 'Scheduled').length,
           working: visits.filter(v => v.status === 'Working').length,
           done: visits.filter(v => v.status === 'Done').length,
         },
@@ -93,7 +93,6 @@ export default function Dashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-        {/* Leads Card */}
         <GlassCard className="flex items-center justify-between">
           <div>
             <p className="text-sm opacity-70">Total Leads</p>
@@ -107,7 +106,6 @@ export default function Dashboard() {
           <Users size={32} className="text-blue-500 opacity-70" />
         </GlassCard>
 
-        {/* Tasks Card */}
         <GlassCard className="flex items-center justify-between">
           <div>
             <p className="text-sm opacity-70">Total Tasks</p>
@@ -121,7 +119,6 @@ export default function Dashboard() {
           <ClipboardList size={32} className="text-green-500 opacity-70" />
         </GlassCard>
 
-        {/* Dispatch Card */}
         <GlassCard className="flex items-center justify-between">
           <div>
             <p className="text-sm opacity-70">Dispatch</p>
@@ -131,21 +128,20 @@ export default function Dashboard() {
               {' · '}
               <span className="text-blue-400">{stats.dispatch.working} working</span>
               {' · '}
-              <span className="text-green-500">{stats.dispatch.done} done</span>
+              <span className="text-green-500">{stats.dispatch.delivered} delivered</span>
             </p>
           </div>
           <Truck size={32} className="text-yellow-500 opacity-70" />
         </GlassCard>
 
-        {/* Visits Card */}
         <GlassCard className="flex items-center justify-between">
           <div>
             <p className="text-sm opacity-70">Visits</p>
             <p className="text-3xl font-bold">{stats.visits.total}</p>
             <p className="text-xs mt-1">
-              <span className="text-yellow-500">{stats.visits.pending} pending</span>
+              <span className="text-blue-400">{stats.visits.scheduled} scheduled</span>
               {' · '}
-              <span className="text-blue-400">{stats.visits.working} working</span>
+              <span className="text-yellow-500">{stats.visits.working} working</span>
               {' · '}
               <span className="text-green-500">{stats.visits.done} done</span>
             </p>
@@ -232,7 +228,6 @@ export default function Dashboard() {
         </div>
       </GlassCard>
 
-      {/* Kanban Board Preview */}
       {profile?.role === 'admin' && (
         <div>
           <h3 className="text-lg font-semibold mb-4">Task Kanban</h3>
