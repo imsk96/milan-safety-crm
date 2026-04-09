@@ -33,28 +33,33 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
-  // ✅ FIXED: UPSERT (no hang, no missing row issue)
+  // ✅ FIXED: Robust UPSERT (multi-tenant safe + no null id issue)
   updateBackground: async (url) => {
     const { useAuthStore } = await import('./authStore')
     const companyId = useAuthStore.getState().profile?.company_id
 
     if (!companyId) throw new Error('Company not found')
 
-    const { error } = await supabase
-      .from('settings')
-      .upsert(
-        {
-          company_id: companyId,
-          background_image_url: url,
-        },
-        {
+    try {
+      const payload = {
+        company_id: companyId,
+        background_image_url: url,
+        updated_at: new Date().toISOString(),
+      }
+
+      const { error } = await supabase
+        .from('settings')
+        .upsert(payload, {
           onConflict: 'company_id',
-        }
-      )
+        })
 
-    if (error) throw error
+      if (error) throw error
 
-    set({ backgroundImage: url })
+      set({ backgroundImage: url || null })
+    } catch (err) {
+      console.error('updateBackground error:', err)
+      throw err
+    }
   },
 
   initialize: () => {
