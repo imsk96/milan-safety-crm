@@ -17,7 +17,7 @@ export default function Layout() {
         />
       )}
       {/* Gradient overlay */}
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-50/80 via-purple-50/80 to-pink-50/80 dark:from-gray-900/90 dark:via-gray-800/90 dark:to-gray-900/90 z-0" />
+      <div className="fixed inset-0 bg-gradient-to-br from-blue-50/10 via-purple-50/10 to-pink-50/10 dark:from-gray-900/20 dark:via-gray-800/20 dark:to-gray-900/20 z-0" />
 
       <div className="relative z-10">
         <Sidebar />
