@@ -4,7 +4,6 @@ import { useAuthStore } from '../store/authStore'
 // Universal CRUD service
 export const api = {
   async create(table, data) {
-    // Auto-add company_id from logged-in user's profile (if applicable)
     const profile = useAuthStore.getState().profile
     if (profile?.company_id && table !== 'companies' && table !== 'settings') {
       data.company_id = profile.company_id
@@ -51,12 +50,22 @@ export const api = {
     return true
   },
 
-  // Real-time subscription helper
+  // ✅ Fixed: Unique channel name + pehle remove karo agar already exist kare
   subscribe(table, callback, filter = {}) {
-    const subscription = supabase
-      .channel(`public:${table}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table, filter }, callback)
+    // Unique channel name banao - timestamp se ensure karo koi conflict na ho
+    const channelName = `public:${table}:${Date.now()}`
+
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table, ...(Object.keys(filter).length ? { filter } : {}) },
+        callback
+      )
       .subscribe()
-    return () => supabase.removeChannel(subscription)
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   },
 }
