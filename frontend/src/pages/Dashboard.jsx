@@ -101,6 +101,8 @@ export default function Dashboard() {
               <span className="text-green-500">{stats.leads.new} new</span>
               {' · '}
               <span className="text-yellow-500">{stats.leads.working} working</span>
+              {' · '}
+              <span className="text-red-500">{stats.leads.closed} closed</span>
             </p>
           </div>
           <Users size={32} className="text-blue-500 opacity-70" />
@@ -112,6 +114,8 @@ export default function Dashboard() {
             <p className="text-3xl font-bold">{stats.tasks.total}</p>
             <p className="text-xs mt-1">
               <span className="text-yellow-500">{stats.tasks.pending} pending</span>
+              {' · '}
+              <span className="text-blue-400">{stats.tasks.working} working</span>
               {' · '}
               <span className="text-green-500">{stats.tasks.done} done</span>
             </p>
