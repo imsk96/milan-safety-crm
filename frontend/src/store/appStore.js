@@ -15,15 +15,17 @@ export const useAppStore = create((set, get) => ({
 
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
-  // ✅ companyId required — company-specific background fetch
+  // ✅ Fetch background (safe)
   fetchBackground: async (companyId) => {
     if (!companyId) return
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('settings')
         .select('background_image_url')
         .eq('company_id', companyId)
         .maybeSingle()
+
+      if (error) throw error
 
       set({ backgroundImage: data?.background_image_url || null })
     } catch (e) {
@@ -31,31 +33,26 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
-  // ✅ company_id authStore se internally lete hain
+  // ✅ FIXED: UPSERT (no hang, no missing row issue)
   updateBackground: async (url) => {
-    // Zustand store se getState() — no circular dep
     const { useAuthStore } = await import('./authStore')
     const companyId = useAuthStore.getState().profile?.company_id
+
     if (!companyId) throw new Error('Company not found')
 
-    const { data: existing } = await supabase
+    const { error } = await supabase
       .from('settings')
-      .select('id')
-      .eq('company_id', companyId)
-      .maybeSingle()
+      .upsert(
+        {
+          company_id: companyId,
+          background_image_url: url,
+        },
+        {
+          onConflict: 'company_id',
+        }
+      )
 
-    if (existing) {
-      const { error } = await supabase
-        .from('settings')
-        .update({ background_image_url: url })
-        .eq('id', existing.id)
-      if (error) throw error
-    } else {
-      const { error } = await supabase
-        .from('settings')
-        .insert({ background_image_url: url, company_id: companyId })
-      if (error) throw error
-    }
+    if (error) throw error
 
     set({ backgroundImage: url })
   },
@@ -63,6 +60,5 @@ export const useAppStore = create((set, get) => ({
   initialize: () => {
     const isDark = get().darkMode
     document.documentElement.classList.toggle('dark', isDark)
-    // Note: fetchBackground is called from Layout.jsx after profile loads
   },
 }))
