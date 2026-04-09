@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply antialiased;
+    @apply antialiased text-yellow-400;
   }
 }
 
