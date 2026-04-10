@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../store/authStore'
 import toast from 'react-hot-toast'
+import useFormProtection from '../../hooks/useFormProtection'
 
 export default function VisitForm({ visit, onClose, onSuccess }) {
   const { profile } = useAuthStore()
@@ -16,6 +17,13 @@ export default function VisitForm({ visit, onClose, onSuccess }) {
     contact_details: '',
     remarks: '',
     status: 'Scheduled',
+  })
+
+  const formKey = visit ? `visit-edit-${visit.id}` : 'visit-new'
+  const { confirmClose, clearSavedData, restoredData } = useFormProtection({
+    formKey,
+    formData,
+    enabled: true,
   })
 
   useEffect(() => {
@@ -33,10 +41,35 @@ export default function VisitForm({ visit, onClose, onSuccess }) {
     }
   }, [visit])
 
+  useEffect(() => {
+    if (restoredData) {
+      setFormData(prev => ({ ...prev, ...restoredData }))
+      toast('Unsaved changes restored', { icon: '⚠️' })
+    }
+  }, [restoredData])
+
   const fetchStaff = async () => {
     const data = await api.get('users', { eq: { role: 'staff' } })
     setStaffList(data || [])
   }
+
+  const handleClose = useCallback(async () => {
+    const shouldClose = await confirmClose()
+    if (shouldClose) {
+      onClose()
+    }
+  }, [confirmClose, onClose])
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        handleClose()
+      }
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [handleClose])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -48,6 +81,7 @@ export default function VisitForm({ visit, onClose, onSuccess }) {
         await api.create('visits', formData)
         toast.success('Visit created')
       }
+      clearSavedData()
       onSuccess()
     } catch (error) {
       toast.error(error.message)
@@ -60,7 +94,7 @@ export default function VisitForm({ visit, onClose, onSuccess }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
@@ -70,7 +104,7 @@ export default function VisitForm({ visit, onClose, onSuccess }) {
       >
         <div className="flex items-center justify-between mb-3 sm:mb-4">
           <h2 className="text-lg sm:text-xl font-bold">{visit ? 'Edit Visit' : 'New Visit'}</h2>
-          <button onClick={onClose} className="p-2 sm:p-1 hover:bg-white/20 rounded">
+          <button onClick={handleClose} className="p-2 sm:p-1 hover:bg-white/20 rounded">
             <X size={20} />
           </button>
         </div>
@@ -152,7 +186,7 @@ export default function VisitForm({ visit, onClose, onSuccess }) {
           </div>
 
           <div className="flex justify-end gap-3 pt-3 sm:pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-3 sm:px-4 sm:py-2 glass rounded-lg">
+            <button type="button" onClick={handleClose} className="px-4 py-3 sm:px-4 sm:py-2 glass rounded-lg">
               Cancel
             </button>
             <button type="submit" className="px-4 py-3 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg">
