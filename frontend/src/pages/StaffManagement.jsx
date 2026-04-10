@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import usePageRefresh from '../hooks/usePageRefresh'
 import GlassCard from '../components/GlassCard'
 import {
@@ -37,6 +37,19 @@ export default function StaffManagement() {
     tag_name: '',
   })
 
+  // Track initial form data to detect unsaved changes
+  const [initialFormData, setInitialFormData] = useState({
+    name: '',
+    login_id: '',
+    password: '',
+    tag_name: '',
+  })
+
+  const isFormDirty = useMemo(() => {
+    if (!showForm) return false
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData)
+  }, [formData, initialFormData, showForm])
+
   const fetchStaff = async () => {
     try {
       setLoading(true)
@@ -54,16 +67,47 @@ export default function StaffManagement() {
   usePageRefresh(fetchStaff)
 
   const openCreateForm = () => {
+    const defaultForm = { name: '', login_id: '', password: '', tag_name: '' }
     setEditingStaff(null)
-    setFormData({ name: '', login_id: '', password: '', tag_name: '' })
+    setFormData(defaultForm)
+    setInitialFormData(defaultForm)
     setShowForm(true)
   }
 
   const openEditForm = (s) => {
+    const editForm = { name: s.name || '', login_id: s.login_id || '', password: '', tag_name: s.tag_name || '' }
     setEditingStaff(s)
-    setFormData({ name: s.name || '', login_id: s.login_id || '', password: '', tag_name: s.tag_name || '' })
+    setFormData(editForm)
+    setInitialFormData(editForm)
     setShowForm(true)
   }
+
+  const handleSafeCloseModal = () => {
+    if (isFormDirty) {
+      if (confirm('You have unsaved changes. Are you sure you want to close?')) {
+        setShowForm(false)
+        setEditingStaff(null)
+        setFormData({ name: '', login_id: '', password: '', tag_name: '' })
+        setInitialFormData({ name: '', login_id: '', password: '', tag_name: '' })
+      }
+    } else {
+      setShowForm(false)
+      setEditingStaff(null)
+      setFormData({ name: '', login_id: '', password: '', tag_name: '' })
+      setInitialFormData({ name: '', login_id: '', password: '', tag_name: '' })
+    }
+  }
+
+  // ESC key to close modal safely
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape' && showForm && !submitting) {
+        handleSafeCloseModal()
+      }
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [showForm, submitting, isFormDirty])
 
   const handleCopy = (text, key) => {
     navigator.clipboard.writeText(text)
@@ -109,6 +153,7 @@ export default function StaffManagement() {
         setShowForm(false)
         setEditingStaff(null)
         setFormData({ name: '', login_id: '', password: '', tag_name: '' })
+        setInitialFormData({ name: '', login_id: '', password: '', tag_name: '' })
         setTimeout(() => fetchStaff(), 800)
       } else {
         const created = await createStaff(formData)
@@ -124,6 +169,7 @@ export default function StaffManagement() {
 
         setShowForm(false)
         setFormData({ name: '', login_id: '', password: '', tag_name: '' })
+        setInitialFormData({ name: '', login_id: '', password: '', tag_name: '' })
         setTimeout(() => fetchStaff(), 1200)
       }
     } catch (error) {
@@ -483,7 +529,7 @@ export default function StaffManagement() {
       {showForm && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm"
-          onClick={() => !submitting && setShowForm(false)}
+          onClick={!submitting ? handleSafeCloseModal : undefined}
         >
           <div
             className="glass-card w-full max-w-md p-4 sm:p-6 rounded-2xl max-h-[90vh] overflow-y-auto"
@@ -501,7 +547,7 @@ export default function StaffManagement() {
                 )}
               </div>
               <button
-                onClick={() => !submitting && setShowForm(false)}
+                onClick={!submitting ? handleSafeCloseModal : undefined}
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <X size={18} />
@@ -568,7 +614,7 @@ export default function StaffManagement() {
 
               <div className="flex justify-end gap-3 pt-2">
                 <button
-                  onClick={() => !submitting && setShowForm(false)}
+                  onClick={!submitting ? handleSafeCloseModal : undefined}
                   disabled={submitting}
                   className="px-4 py-3 glass rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50 min-h-[44px]"
                 >
