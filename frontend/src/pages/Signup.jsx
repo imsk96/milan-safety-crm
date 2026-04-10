@@ -1,32 +1,30 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { supabase } from '../lib/supabaseClient';
-import toast from 'react-hot-toast';
-import { Building2, User, Lock, AtSign, Mail } from 'lucide-react';
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { supabase } from '../lib/supabaseClient'
+import toast from 'react-hot-toast'
+import { Building2, User, Lock, AtSign, Mail } from 'lucide-react'
 
 export default function Signup() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     companyName: '',
     adminName: '',
     email: '',
     password: '',
     tagName: '',
-  });
+  })
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault()
+    setLoading(true)
 
     try {
-      // Format tag name to always start with @
-      const tag = formData.tagName.startsWith('@') ? formData.tagName : `@${formData.tagName}`;
+      const tag = formData.tagName.startsWith('@')
+        ? formData.tagName
+        : `@${formData.tagName}`
 
-      // Sign up the user. The database trigger will automatically:
-      // 1. Create a new company with the provided name.
-      // 2. Insert the user profile into the public.users table.
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -37,19 +35,19 @@ export default function Signup() {
             tag_name: tag,
           },
         },
-      });
+      })
 
-      if (error) throw error;
-      if (!data.user) throw new Error('Signup failed');
+      if (error) throw error
+      if (!data?.user) throw new Error('Signup failed')
 
-      toast.success('Account created! You can now log in.');
-      navigate('/login');
+      toast.success('Account created! You can now log in.')
+      navigate('/login')
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500">
@@ -60,7 +58,9 @@ export default function Signup() {
       >
         <div className="glass-card p-8">
           <h2 className="text-2xl font-bold text-center mb-6">Create Company Account</h2>
+
           <form onSubmit={handleSubmit} className="space-y-4">
+
             <div>
               <label className="block text-sm mb-1">Company Name</label>
               <div className="relative">
@@ -75,6 +75,7 @@ export default function Signup() {
                 />
               </div>
             </div>
+
             <div>
               <label className="block text-sm mb-1">Your Name</label>
               <div className="relative">
@@ -89,6 +90,7 @@ export default function Signup() {
                 />
               </div>
             </div>
+
             <div>
               <label className="block text-sm mb-1">Email</label>
               <div className="relative">
@@ -103,6 +105,7 @@ export default function Signup() {
                 />
               </div>
             </div>
+
             <div>
               <label className="block text-sm mb-1">Tag Name</label>
               <div className="relative">
@@ -117,6 +120,7 @@ export default function Signup() {
                 />
               </div>
             </div>
+
             <div>
               <label className="block text-sm mb-1">Password (min 6 characters)</label>
               <div className="relative">
@@ -132,6 +136,7 @@ export default function Signup() {
                 />
               </div>
             </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -140,6 +145,7 @@ export default function Signup() {
               {loading ? 'Creating...' : 'Sign Up'}
             </button>
           </form>
+
           <p className="text-center text-sm mt-4">
             Already have an account?{' '}
             <Link to="/login" className="text-blue-600 hover:underline">
@@ -149,5 +155,5 @@ export default function Signup() {
         </div>
       </motion.div>
     </div>
-  );
+  )
 }

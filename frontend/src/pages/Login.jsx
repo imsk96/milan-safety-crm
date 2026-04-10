@@ -3,20 +3,29 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '../store/authStore'
 import toast from 'react-hot-toast'
-import { Lock, Mail } from 'lucide-react'   // ✅ Mail import added
+import { Lock, Mail } from 'lucide-react'
 
 export default function Login() {
-  const [email, setEmail] = useState('')      // Changed from loginId to email
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+
   const { signIn } = useAuthStore()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // ✅ FIX: basic validation
+    if (!email.trim() || !password.trim()) {
+      toast.error('Email and password required')
+      return
+    }
+
     setLoading(true)
+
     try {
-      await signIn(email, password)           // Pass email directly
+      await signIn(email, password)
       navigate('/dashboard')
     } catch (error) {
       toast.error(error.message)
@@ -37,19 +46,26 @@ export default function Login() {
             <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
               <Lock className="text-white" size={28} />
             </div>
+
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Milan Safety
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-2">Sign in to your account</p>
+
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              Sign in to your account
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium mb-2">Email</label>
+
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+
                 <input
                   type="email"
+                  name="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 glass bg-white/10 dark:bg-gray-800/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -61,10 +77,13 @@ export default function Login() {
 
             <div>
               <label className="block text-sm font-medium mb-2">Password</label>
+
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+
                 <input
                   type="password"
+                  name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 glass bg-white/10 dark:bg-gray-800/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import usePageRefresh from '../hooks/usePageRefresh'
 import GlassCard from '../components/GlassCard'
 import {
   Plus, Trash2, Edit2, User, X, Save,
@@ -36,8 +37,6 @@ export default function StaffManagement() {
     tag_name: '',
   })
 
-  useEffect(() => { fetchStaff() }, [])
-
   const fetchStaff = async () => {
     try {
       setLoading(true)
@@ -50,6 +49,9 @@ export default function StaffManagement() {
       setLoading(false)
     }
   }
+
+  useEffect(() => { fetchStaff() }, [])
+  usePageRefresh(fetchStaff)
 
   const openCreateForm = () => {
     setEditingStaff(null)
@@ -312,7 +314,10 @@ export default function StaffManagement() {
                 <p className="text-sm opacity-60 mt-1">Share these with the staff member</p>
               </div>
               <button
-                onClick={() => setViewingCredentials(null)}
+                onClick={() => {
+                  setViewingCredentials(null)
+                  setShowPassword(false)
+                }}
                 className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
               >
                 <X size={18} />

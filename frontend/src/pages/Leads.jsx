@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import usePageRefresh from '../hooks/usePageRefresh'
 import { api } from '../services/api'
 import GlassCard from '../components/GlassCard'
 import { Plus, Edit2, Trash2, Search } from 'lucide-react'
@@ -6,10 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../store/authStore'
 import toast from 'react-hot-toast'
 import { formatDate, getStatusColor } from '../utils/helpers'
-import LeadForm from '../components/forms/LeadForm' // We'll create a generic form component
+import LeadForm from '../components/forms/LeadForm'
 
 export default function Leads() {
   const { profile } = useAuthStore()
+
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -17,25 +19,38 @@ export default function Leads() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
-  useEffect(() => {
-    fetchLeads()
-    const unsubscribe = api.subscribe('leads', fetchLeads)
-    return () => unsubscribe()
-  }, [])
-
-  const fetchLeads = async () => {
+  // ✅ FIX: stable function
+  const fetchLeads = useCallback(async () => {
     try {
-      const data = await api.get('leads', { order: { column: 'created_at', ascending: false } })
-      setLeads(data)
+      setLoading(true)
+
+      const data = await api.get('leads', {
+        order: { column: 'created_at', ascending: false }
+      })
+
+      setLeads(data || [])
     } catch (error) {
       toast.error('Failed to fetch leads')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  // ✅ FIXED refresh hook
+  usePageRefresh(() => {
+    fetchLeads()
+  }, [fetchLeads])
+
+  useEffect(() => {
+    fetchLeads()
+
+    const unsubscribe = api.subscribe('leads', fetchLeads)
+    return () => unsubscribe()
+  }, [fetchLeads])
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure?')) return
+
     try {
       await api.delete('leads', id)
       toast.success('Lead deleted')
@@ -46,9 +61,13 @@ export default function Leads() {
   }
 
   const filteredLeads = leads.filter(lead => {
-    const matchesSearch = lead.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          lead.contact_name?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter
+    const matchesSearch =
+      lead.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.contact_name?.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesStatus =
+      statusFilter === 'all' || lead.status === statusFilter
+
     return matchesSearch && matchesStatus
   })
 
@@ -56,8 +75,12 @@ export default function Leads() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Leads Management</h1>
+
         <button
-          onClick={() => { setEditingLead(null); setShowForm(true) }}
+          onClick={() => {
+            setEditingLead(null)
+            setShowForm(true)
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus size={18} /> Add Lead
@@ -67,7 +90,10 @@ export default function Leads() {
       <GlassCard>
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Search leads..."
@@ -76,6 +102,7 @@ export default function Leads() {
               className="w-full pl-10 pr-4 py-2 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -101,34 +128,68 @@ export default function Leads() {
                 <th className="text-right py-3 px-4">Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="text-center py-8">Loading...</td></tr>
+                <tr>
+                  <td colSpan={7} className="text-center py-8">
+                    Loading...
+                  </td>
+                </tr>
               ) : filteredLeads.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-8 text-gray-500">No leads found</td></tr>
+                <tr>
+                  <td colSpan={7} className="text-center py-8 text-gray-500">
+                    No leads found
+                  </td>
+                </tr>
               ) : (
                 filteredLeads.map((lead) => (
-                  <tr key={lead.id} className="border-b border-white/10 hover:bg-white/5">
-                    <td className="py-3 px-4 font-medium">{lead.company_name}</td>
+                  <tr
+                    key={lead.id}
+                    className="border-b border-white/10 hover:bg-white/5"
+                  >
+                    <td className="py-3 px-4 font-medium">
+                      {lead.company_name}
+                    </td>
+
                     <td className="py-3 px-4">
                       <div>{lead.contact_name}</div>
                       <div className="text-sm opacity-70">{lead.phone}</div>
                     </td>
-                    <td className="py-3 px-4">{lead.product_required}</td>
-                    <td className="py-3 px-4">{lead.assigned_to || '-'}</td>
+
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(lead.status)}`}>
+                      {lead.product_required}
+                    </td>
+
+                    <td className="py-3 px-4">
+                      {lead.assigned_to || '-'}
+                    </td>
+
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+                          lead.status
+                        )}`}
+                      >
                         {lead.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4">{formatDate(lead.follow_up_date)}</td>
+
+                    <td className="py-3 px-4">
+                      {formatDate(lead.follow_up_date)}
+                    </td>
+
                     <td className="py-3 px-4 text-right">
                       <button
-                        onClick={() => { setEditingLead(lead); setShowForm(true) }}
+                        onClick={() => {
+                          setEditingLead(lead)
+                          setShowForm(true)
+                        }}
                         className="p-1 hover:text-blue-500 mr-2"
                       >
                         <Edit2 size={16} />
                       </button>
+
                       <button
                         onClick={() => handleDelete(lead.id)}
                         className="p-1 hover:text-red-500"
@@ -149,7 +210,10 @@ export default function Leads() {
           <LeadForm
             lead={editingLead}
             onClose={() => setShowForm(false)}
-            onSuccess={() => { fetchLeads(); setShowForm(false) }}
+            onSuccess={() => {
+              fetchLeads()
+              setShowForm(false)
+            }}
           />
         )}
       </AnimatePresence>

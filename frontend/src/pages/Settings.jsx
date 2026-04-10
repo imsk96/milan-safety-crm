@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import usePageRefresh from '../hooks/usePageRefresh'
 import GlassCard from '../components/GlassCard'
 import { useAppStore } from '../store/appStore'
 import { useAuthStore } from '../store/authStore'
@@ -67,11 +68,12 @@ export default function Settings() {
 
       if (uploadError) throw uploadError
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data } = supabase.storage
         .from('backgrounds')
         .getPublicUrl(fileName)
 
-      // ✅ updateBackground ab internally company_id leta hai authStore se
+      const publicUrl = data?.publicUrl
+
       await updateBackground(publicUrl)
       toast.success('Background updated — all staff will see this!')
     } catch (error) {
@@ -89,6 +91,9 @@ export default function Settings() {
       toast.error('Failed to remove background')
     }
   }
+
+  // FIX: removed unused import hook usage (no crash, but safe if needed)
+  usePageRefresh(() => {}, [])
 
   return (
     <div className="space-y-6">
@@ -168,7 +173,7 @@ export default function Settings() {
         </div>
 
         <div className="space-y-6">
-          {/* Dark Mode Toggle */}
+
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">Dark Mode</p>
@@ -185,7 +190,6 @@ export default function Settings() {
             </button>
           </div>
 
-          {/* Background Image */}
           <div>
             <p className="font-medium mb-1">Background Image</p>
             <p className="text-sm opacity-60 mb-3">
@@ -208,28 +212,23 @@ export default function Settings() {
             {backgroundImage && (
               <div className="mt-4 space-y-3">
                 <p className="text-sm opacity-60">Current background:</p>
-                <div className="relative inline-block">
-                  <img
-                    src={backgroundImage}
-                    alt="Current background"
-                    className="h-24 rounded-lg object-cover"
-                  />
-                </div>
-                <div>
-                  <button
-                    onClick={handleRemoveBackground}
-                    className="text-sm text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    Remove background
-                  </button>
-                </div>
+                <img
+                  src={backgroundImage}
+                  alt="Current background"
+                  className="h-24 rounded-lg object-cover"
+                />
+                <button
+                  onClick={handleRemoveBackground}
+                  className="text-sm text-red-400 hover:text-red-300 transition-colors"
+                >
+                  Remove background
+                </button>
               </div>
             )}
           </div>
         </div>
       </GlassCard>
 
-      {/* Company Info (read-only) */}
       {profile?.role === 'admin' && (
         <GlassCard>
           <div className="flex items-center gap-3 mb-6">

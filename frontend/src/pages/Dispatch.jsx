@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import usePageRefresh from '../hooks/usePageRefresh'
 import { api } from '../services/api'
 import GlassCard from '../components/GlassCard'
 import { Plus, Edit2, Trash2, Search } from 'lucide-react'
@@ -10,6 +11,7 @@ import DispatchForm from '../components/forms/DispatchForm'
 
 export default function Dispatch() {
   const { profile } = useAuthStore()
+
   const [dispatches, setDispatches] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -17,25 +19,35 @@ export default function Dispatch() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
-  useEffect(() => {
-    fetchDispatches()
-    const unsubscribe = api.subscribe('dispatch', fetchDispatches)
-    return () => unsubscribe()
-  }, [])
-
-  const fetchDispatches = async () => {
+  // ✅ FIX: stable function reference
+  const fetchDispatches = useCallback(async () => {
     try {
-      const data = await api.get('dispatch', { order: { column: 'created_at', ascending: false } })
-      setDispatches(data)
+      setLoading(true)
+      const data = await api.get('dispatch', {
+        order: { column: 'created_at', ascending: false }
+      })
+      setDispatches(data || [])
     } catch (error) {
       toast.error('Failed to fetch dispatches')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  // ✅ refresh hook (correct usage)
+  usePageRefresh(() => {
+    fetchDispatches()
+  }, [fetchDispatches])
+
+  // subscription kept separate (important)
+  useEffect(() => {
+    const unsubscribe = api.subscribe('dispatch', fetchDispatches)
+    return () => unsubscribe()
+  }, [fetchDispatches])
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure?')) return
+
     try {
       await api.delete('dispatch', id)
       toast.success('Dispatch deleted')
@@ -46,9 +58,13 @@ export default function Dispatch() {
   }
 
   const filteredDispatches = dispatches.filter(dispatch => {
-    const matchesSearch = dispatch.party_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          dispatch.location?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || dispatch.status === statusFilter
+    const matchesSearch =
+      dispatch.party_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dispatch.location?.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesStatus =
+      statusFilter === 'all' || dispatch.status === statusFilter
+
     return matchesSearch && matchesStatus
   })
 
@@ -56,8 +72,12 @@ export default function Dispatch() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Dispatch Management</h1>
+
         <button
-          onClick={() => { setEditingDispatch(null); setShowForm(true) }}
+          onClick={() => {
+            setEditingDispatch(null)
+            setShowForm(true)
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg"
         >
           <Plus size={18} /> Add Dispatch
@@ -67,7 +87,10 @@ export default function Dispatch() {
       <GlassCard>
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Search by party or location..."
@@ -76,6 +99,7 @@ export default function Dispatch() {
               className="w-full pl-10 pr-4 py-2 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -101,35 +125,60 @@ export default function Dispatch() {
                 <th className="text-right py-3 px-4">Actions</th>
               </tr>
             </thead>
+
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} className="text-center py-8">Loading...</td></tr>
+                <tr>
+                  <td colSpan={7} className="text-center py-8">
+                    Loading...
+                  </td>
+                </tr>
               ) : filteredDispatches.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-8 text-gray-500">No dispatches found</td></tr>
+                <tr>
+                  <td colSpan={7} className="text-center py-8 text-gray-500">
+                    No dispatches found
+                  </td>
+                </tr>
               ) : (
                 filteredDispatches.map((dispatch) => (
-                  <tr key={dispatch.id} className="border-b border-white/10 hover:bg-white/5">
-                    <td className="py-3 px-4 font-medium">{dispatch.party_name}</td>
+                  <tr
+                    key={dispatch.id}
+                    className="border-b border-white/10 hover:bg-white/5"
+                  >
+                    <td className="py-3 px-4 font-medium">
+                      {dispatch.party_name}
+                    </td>
                     <td className="py-3 px-4">{dispatch.location || '-'}</td>
-                    <td className="py-3 px-4 max-w-xs truncate">{dispatch.items || '-'}</td>
-                    <td className="py-3 px-4">{dispatch.assigned_to || '-'}</td>
-                    <td className="py-3 px-4">{dispatch.contact_details || '-'}</td>
+                    <td className="py-3 px-4 max-w-xs truncate">
+                      {dispatch.items || '-'}
+                    </td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(dispatch.status)}`}>
+                      {dispatch.assigned_to || '-'}
+                    </td>
+                    <td className="py-3 px-4">
+                      {dispatch.contact_details || '-'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
+                          dispatch.status
+                        )}`}
+                      >
                         {dispatch.status}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right">
                       <button
-                        onClick={() => { setEditingDispatch(dispatch); setShowForm(true) }}
-                        className="p-1 hover:text-blue-500 mr-2"
+                        onClick={() => {
+                          setEditingDispatch(dispatch)
+                          setShowForm(true)
+                        }}
+                        className="mr-2"
                       >
                         <Edit2 size={16} />
                       </button>
-                      <button
-                        onClick={() => handleDelete(dispatch.id)}
-                        className="p-1 hover:text-red-500"
-                      >
+
+                      <button onClick={() => handleDelete(dispatch.id)}>
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -146,7 +195,10 @@ export default function Dispatch() {
           <DispatchForm
             dispatch={editingDispatch}
             onClose={() => setShowForm(false)}
-            onSuccess={() => { fetchDispatches(); setShowForm(false) }}
+            onSuccess={() => {
+              fetchDispatches()
+              setShowForm(false)
+            }}
           />
         )}
       </AnimatePresence>

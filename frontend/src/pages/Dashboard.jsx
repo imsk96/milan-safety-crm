@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../store/authStore'
 import { api } from '../services/api'
@@ -8,18 +9,37 @@ import { Users, ClipboardList, Truck, CalendarCheck, TrendingUp } from 'lucide-r
 
 export default function Dashboard() {
   const { profile } = useAuthStore()
+  const location = useLocation()
+
   const [stats, setStats] = useState({
     leads: { total: 0, new: 0, working: 0, closed: 0 },
     tasks: { total: 0, pending: 0, working: 0, done: 0 },
-    dispatch: { total: 0, pending: 0, working: 0, delivered: 0 },
-    visits: { total: 0, scheduled: 0, working: 0, done: 0 },
+    dispatch: { total: 0, pending: 0, transit: 0, delivered: 0 },
+    visits: { total: 0, scheduled: 0, completed: 0, canceled: 0 },
   })
+
   const [recentActivities, setRecentActivities] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchStats()
-    fetchRecentActivities()
-  }, [])
+    if (profile) {
+      fetchAllData()
+    }
+  }, [location.pathname, profile])
+
+  const fetchAllData = async () => {
+    setLoading(true)
+    try {
+      await Promise.all([
+        fetchStats(),
+        fetchRecentActivities()
+      ])
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const fetchStats = async () => {
     try {
@@ -46,14 +66,14 @@ export default function Dashboard() {
         dispatch: {
           total: dispatch.length,
           pending: dispatch.filter(d => d.status === 'Pending').length,
-          working: dispatch.filter(d => d.status === 'Working').length,
+          transit: dispatch.filter(d => d.status === 'In transit').length,
           delivered: dispatch.filter(d => d.status === 'Delivered').length,
         },
         visits: {
           total: visits.length,
           scheduled: visits.filter(v => v.status === 'Scheduled').length,
-          working: visits.filter(v => v.status === 'Working').length,
-          done: visits.filter(v => v.status === 'Done').length,
+          completed: visits.filter(v => v.status === 'Completed').length,
+          canceled: visits.filter(v => v.status === 'Canceled').length,
         },
       })
     } catch (error) {
@@ -67,10 +87,14 @@ export default function Dashboard() {
         api.get('leads', { order: { column: 'created_at', ascending: false }, limit: 5 }),
         api.get('tasks', { order: { column: 'created_at', ascending: false }, limit: 5 }),
       ])
+
       const combined = [
         ...leads.map(l => ({ ...l, type: 'lead' })),
         ...tasks.map(t => ({ ...t, type: 'task' })),
-      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5)
+      ]
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 5)
+
       setRecentActivities(combined)
     } catch (error) {
       console.error(error)
@@ -85,6 +109,15 @@ export default function Dashboard() {
   ]
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444']
+
+  // ✅ LOADING FIX
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40 text-gray-400">
+        Loading Dashboard...
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -130,7 +163,7 @@ export default function Dashboard() {
             <p className="text-xs mt-1">
               <span className="text-yellow-500">{stats.dispatch.pending} pending</span>
               {' · '}
-              <span className="text-blue-400">{stats.dispatch.working} working</span>
+              <span className="text-blue-400">{stats.dispatch.transit} in transit</span>
               {' · '}
               <span className="text-green-500">{stats.dispatch.delivered} delivered</span>
             </p>
@@ -145,9 +178,9 @@ export default function Dashboard() {
             <p className="text-xs mt-1">
               <span className="text-blue-400">{stats.visits.scheduled} scheduled</span>
               {' · '}
-              <span className="text-yellow-500">{stats.visits.working} working</span>
+              <span className="text-yellow-500">{stats.visits.completed} completed</span>
               {' · '}
-              <span className="text-green-500">{stats.visits.done} done</span>
+              <span className="text-green-500">{stats.visits.canceled} canceled</span>
             </p>
           </div>
           <CalendarCheck size={32} className="text-purple-500 opacity-70" />
