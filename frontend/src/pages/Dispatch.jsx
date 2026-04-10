@@ -57,6 +57,10 @@ export default function Dispatch() {
     }
   }
 
+  const handleSafeClose = () => {
+    setShowForm(false)
+  }
+
   const filteredDispatches = dispatches.filter(dispatch => {
     const matchesSearch =
       dispatch.party_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -197,7 +201,7 @@ export default function Dispatch() {
         {showForm && (
           <DispatchForm
             dispatch={editingDispatch}
-            onClose={() => setShowForm(false)}
+            onClose={handleSafeClose}
             onSuccess={() => {
               fetchDispatches()
               setShowForm(false)

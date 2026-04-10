@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { api } from '../services/api'
 import GlassCard from '../components/GlassCard'
 import { Plus, Edit2, Trash2, Search } from 'lucide-react'
@@ -44,6 +44,10 @@ export default function Visits() {
       toast.error('Delete failed')
     }
   }
+
+  const handleSafeClose = useCallback(() => {
+    setShowForm(false)
+  }, [])
 
   const filteredVisits = visits.filter(visit => {
     const matchesSearch = visit.party_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -145,7 +149,7 @@ export default function Visits() {
         {showForm && (
           <VisitForm
             visit={editingVisit}
-            onClose={() => setShowForm(false)}
+            onClose={handleSafeClose}
             onSuccess={() => { fetchVisits(); setShowForm(false) }}
           />
         )}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { api } from '../services/api'
 import GlassCard from '../components/GlassCard'
 import KanbanBoard from '../components/KanbanBoard'
@@ -46,6 +46,10 @@ export default function Tasks() {
       toast.error('Delete failed')
     }
   }
+
+  const handleSafeClose = useCallback(() => {
+    setShowForm(false)
+  }, [])
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.task?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -138,7 +142,7 @@ export default function Tasks() {
                         <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(task.status)}`}>
                           {task.status}
                         </span>
-                      </td>
+                       </td>
                       <td className="py-2 sm:py-3 px-2 sm:px-4 text-right">
                         <button
                           onClick={() => { setEditingTask(task); setShowForm(true) }}
@@ -166,7 +170,7 @@ export default function Tasks() {
         {showForm && (
           <TaskForm
             task={editingTask}
-            onClose={() => setShowForm(false)}
+            onClose={handleSafeClose}
             onSuccess={() => { fetchTasks(); setShowForm(false) }}
           />
         )}

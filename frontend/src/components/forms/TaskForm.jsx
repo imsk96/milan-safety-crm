@@ -92,7 +92,6 @@ export default function TaskForm({ task, onClose, onSuccess }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm"
-      onClick={handleClose}
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}

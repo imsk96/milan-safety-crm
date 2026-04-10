@@ -60,6 +60,10 @@ export default function Leads() {
     }
   }
 
+  const handleSafeClose = useCallback(() => {
+    setShowForm(false)
+  }, [])
+
   const filteredLeads = leads.filter(lead => {
     const matchesSearch =
       lead.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -209,7 +213,7 @@ export default function Leads() {
         {showForm && (
           <LeadForm
             lead={editingLead}
-            onClose={() => setShowForm(false)}
+            onClose={handleSafeClose}
             onSuccess={() => {
               fetchLeads()
               setShowForm(false)
