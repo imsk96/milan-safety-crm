@@ -66,7 +66,8 @@ export default function LeadForm({ lead, onClose, onSuccess }) {
         await api.update('leads', lead.id, formData)
         toast.success('Lead updated')
       } else {
-        await api.create('leads', formData)
+        await api.create('leads', {...formData,
+          company_id:profile.company_id,})
         toast.success('Lead created')
       }
       onSuccess()
