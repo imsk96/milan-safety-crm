@@ -117,93 +117,93 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-40 text-gray-400">
+      <div className="flex justify-center items-center h-40 text-gray-400 text-sm sm:text-base">
         Loading Dashboard...
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Welcome back, {profile?.name}</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <h1 className="text-2xl sm:text-3xl font-bold">Welcome back, {profile?.name}</h1>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 
         <GlassCard className="flex items-center justify-between">
           <div>
-            <p className="text-sm opacity-70">Total Leads</p>
-            <p className="text-3xl font-bold">{stats.leads.total}</p>
-            <p className="text-xs mt-1">
+            <p className="text-xs sm:text-sm opacity-70">Total Leads</p>
+            <p className="text-2xl sm:text-3xl font-bold">{stats.leads.total}</p>
+            <p className="text-[10px] sm:text-xs mt-1 flex flex-wrap gap-x-1">
               <span className="text-green-500">{stats.leads.new} new</span>
-              {' · '}
+              <span className="hidden sm:inline">·</span>
               <span className="text-yellow-500">{stats.leads.working} working</span>
-              {' · '}
+              <span className="hidden sm:inline">·</span>
               <span className="text-red-500">{stats.leads.closed} closed</span>
             </p>
           </div>
-          <Users size={32} className="text-blue-500 opacity-70" />
+          <Users size={28} className="sm:size-32 sm:w-8 sm:h-8 text-blue-500 opacity-70" />
         </GlassCard>
 
         <GlassCard className="flex items-center justify-between">
           <div>
-            <p className="text-sm opacity-70">Total Tasks</p>
-            <p className="text-3xl font-bold">{stats.tasks.total}</p>
-            <p className="text-xs mt-1">
+            <p className="text-xs sm:text-sm opacity-70">Total Tasks</p>
+            <p className="text-2xl sm:text-3xl font-bold">{stats.tasks.total}</p>
+            <p className="text-[10px] sm:text-xs mt-1 flex flex-wrap gap-x-1">
               <span className="text-yellow-500">{stats.tasks.pending} pending</span>
-              {' · '}
+              <span className="hidden sm:inline">·</span>
               <span className="text-blue-400">{stats.tasks.working} working</span>
-              {' · '}
+              <span className="hidden sm:inline">·</span>
               <span className="text-green-500">{stats.tasks.done} done</span>
             </p>
           </div>
-          <ClipboardList size={32} className="text-green-500 opacity-70" />
+          <ClipboardList size={28} className="sm:size-32 sm:w-8 sm:h-8 text-green-500 opacity-70" />
         </GlassCard>
 
         <GlassCard className="flex items-center justify-between">
           <div>
-            <p className="text-sm opacity-70">Dispatch</p>
-            <p className="text-3xl font-bold">{stats.dispatch.total}</p>
-            <p className="text-xs mt-1">
+            <p className="text-xs sm:text-sm opacity-70">Dispatch</p>
+            <p className="text-2xl sm:text-3xl font-bold">{stats.dispatch.total}</p>
+            <p className="text-[10px] sm:text-xs mt-1 flex flex-wrap gap-x-1">
               <span className="text-yellow-500">{stats.dispatch.pending} pending</span>
-              {' · '}
+              <span className="hidden sm:inline">·</span>
               <span className="text-blue-400">{stats.dispatch.transit} in transit</span>
-              {' · '}
+              <span className="hidden sm:inline">·</span>
               <span className="text-green-500">{stats.dispatch.delivered} delivered</span>
             </p>
           </div>
-          <Truck size={32} className="text-yellow-500 opacity-70" />
+          <Truck size={28} className="sm:size-32 sm:w-8 sm:h-8 text-yellow-500 opacity-70" />
         </GlassCard>
 
         <GlassCard className="flex items-center justify-between">
           <div>
-            <p className="text-sm opacity-70">Visits</p>
-            <p className="text-3xl font-bold">{stats.visits.total}</p>
-            <p className="text-xs mt-1">
+            <p className="text-xs sm:text-sm opacity-70">Visits</p>
+            <p className="text-2xl sm:text-3xl font-bold">{stats.visits.total}</p>
+            <p className="text-[10px] sm:text-xs mt-1 flex flex-wrap gap-x-1">
               <span className="text-blue-400">{stats.visits.scheduled} scheduled</span>
-              {' · '}
+              <span className="hidden sm:inline">·</span>
               <span className="text-yellow-500">{stats.visits.completed} completed</span>
-              {' · '}
+              <span className="hidden sm:inline">·</span>
               <span className="text-green-500">{stats.visits.canceled} canceled</span>
             </p>
           </div>
-          <CalendarCheck size={32} className="text-purple-500 opacity-70" />
+          <CalendarCheck size={28} className="sm:size-32 sm:w-8 sm:h-8 text-purple-500 opacity-70" />
         </GlassCard>
 
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <GlassCard>
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <TrendingUp size={20} /> Overview
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+            <TrendingUp size={18} className="sm:size-20" /> Overview
           </h3>
-          <div className="h-64">
+          <div className="h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ccc" opacity={0.3} />
-                <XAxis dataKey="name" />
-                <YAxis />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -212,8 +212,8 @@ export default function Dashboard() {
         </GlassCard>
 
         <GlassCard>
-          <h3 className="text-lg font-semibold mb-4">Lead Status Distribution</h3>
-          <div className="h-64">
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Lead Status Distribution</h3>
+          <div className="h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -224,8 +224,8 @@ export default function Dashboard() {
                   ]}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={50}
+                  outerRadius={70}
                   paddingAngle={5}
                   dataKey="value"
                 >
@@ -242,25 +242,23 @@ export default function Dashboard() {
 
       {/* Recent Activities */}
       <GlassCard>
-        <h3 className="text-lg font-semibold mb-4">Recent Activities</h3>
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Recent Activities</h3>
         <div className="space-y-2">
           {recentActivities.length === 0 ? (
-            <p className="text-center py-4 opacity-50">No recent activities</p>
+            <p className="text-center py-4 opacity-50 text-sm sm:text-base">No recent activities</p>
           ) : (
             recentActivities.map((activity) => (
               <div
                 key={activity.id}
-                className="flex items-center justify-between py-2 border-b border-white/10 last:border-0"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 border-b border-white/10 last:border-0 gap-1 sm:gap-0"
               >
                 <div>
-                  <p className="font-medium">
-                    {activity.type === 'lead' ? activity.company_name : activity.task}
-                  </p>
-                  <p className="text-sm opacity-70">
+                  <p className="font-medium text-sm sm:text-base">{activity.type === 'lead' ? activity.company_name : activity.task}</p>
+                  <p className="text-xs sm:text-sm opacity-70">
                     {activity.type} · {activity.status}
                   </p>
                 </div>
-                <span className="text-sm opacity-70">
+                <span className="text-xs sm:text-sm opacity-70">
                   {new Date(activity.created_at).toLocaleDateString()}
                 </span>
               </div>
@@ -271,7 +269,7 @@ export default function Dashboard() {
 
       {profile?.role === 'admin' && (
         <div>
-          <h3 className="text-lg font-semibold mb-4">Task Kanban</h3>
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Task Kanban</h3>
           <KanbanBoard type="tasks" />
         </div>
       )}

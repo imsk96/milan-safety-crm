@@ -32,12 +32,12 @@ export default function Layout() {
       <div className="relative z-10">
         <Sidebar />
         <TopNav />
-        <main className="pt-16 md:pl-64">
+        <main className="pt-14 sm:pt-16 md:pl-64">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="p-6"
+            className="p-4 sm:p-6"
           >
             <Outlet />
           </motion.div>

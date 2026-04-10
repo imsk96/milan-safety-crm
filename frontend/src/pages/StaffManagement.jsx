@@ -150,13 +150,13 @@ export default function StaffManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Staff Management</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Staff Management</h1>
         {profile?.role === 'admin' && (
           <button
             onClick={openCreateForm}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-3 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors min-h-[44px] w-full sm:w-auto"
           >
             <Plus size={18} /> Add Staff
           </button>
@@ -165,26 +165,26 @@ export default function StaffManagement() {
 
       <GlassCard>
         {loading ? (
-          <div className="text-center py-8 opacity-50">Loading staff...</div>
+          <div className="text-center py-8 opacity-50 text-sm sm:text-base">Loading staff...</div>
         ) : staff.length === 0 ? (
           <div className="text-center py-8 opacity-50">
             <User size={40} className="mx-auto mb-2 opacity-30" />
-            <p>No staff members yet</p>
-            <p className="text-sm mt-1">Click "Add Staff" to create a staff account</p>
+            <p className="text-sm sm:text-base">No staff members yet</p>
+            <p className="text-xs sm:text-sm mt-1">Click "Add Staff" to create a staff account</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <table className="w-full text-sm sm:text-base">
               <thead>
                 <tr className="border-b border-white/20">
-                  <th className="text-left py-3 px-4">Name</th>
-                  <th className="text-left py-3 px-4">Login Email</th>
-                  <th className="text-left py-3 px-4">Tag</th>
-                  <th className="text-left py-3 px-4">Role</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Name</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Login Email</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Tag</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Role</th>
                   {profile?.role === 'admin' && (
                     <>
-                      <th className="text-left py-3 px-4">Password</th>
-                      <th className="text-right py-3 px-4">Actions</th>
+                      <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Password</th>
+                      <th className="text-right py-2 sm:py-3 px-2 sm:px-4">Actions</th>
                     </>
                   )}
                 </tr>
@@ -192,17 +192,17 @@ export default function StaffManagement() {
               <tbody>
                 {staff.map((s) => (
                   <tr key={s.id} className="border-b border-white/10 hover:bg-white/5">
-                    <td className="py-3 px-4 font-medium">{s.name}</td>
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 font-medium">{s.name}</td>
 
                     {/* ✅ Full login email */}
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       <div className="flex items-center gap-1">
-                        <span className="font-mono text-sm opacity-80">
+                        <span className="font-mono text-xs sm:text-sm opacity-80 truncate max-w-[150px] sm:max-w-none">
                           {getLoginEmail(s.login_id)}
                         </span>
                         <button
                           onClick={() => handleCopy(getLoginEmail(s.login_id), `email-${s.id}`)}
-                          className="p-1 hover:text-blue-400 transition-colors opacity-50 hover:opacity-100"
+                          className="p-1 hover:text-blue-400 transition-colors opacity-50 hover:opacity-100 min-h-[32px] min-w-[32px] sm:min-h-0 sm:min-w-0"
                           title="Copy login email"
                         >
                           {copied === `email-${s.id}`
@@ -213,13 +213,13 @@ export default function StaffManagement() {
                       </div>
                     </td>
 
-                    <td className="py-3 px-4">
-                      <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-sm">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
+                      <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs sm:text-sm">
                         {s.tag_name}
                       </span>
                     </td>
 
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       <span className="px-2 py-1 bg-gray-500/20 rounded text-xs capitalize">
                         {s.role}
                       </span>
@@ -228,17 +228,17 @@ export default function StaffManagement() {
                     {profile?.role === 'admin' && (
                       <>
                         {/* ✅ Permanent password column */}
-                        <td className="py-3 px-4">
+                        <td className="py-2 sm:py-3 px-2 sm:px-4">
                           {s.plain_password ? (
                             <div className="flex items-center gap-1">
-                              <span className="font-mono text-sm">
+                              <span className="font-mono text-xs sm:text-sm">
                                 {revealedPasswords.has(s.id)
                                   ? s.plain_password
                                   : '••••••••'}
                               </span>
                               <button
                                 onClick={() => toggleRevealPassword(s.id)}
-                                className="p-1 hover:text-blue-400 transition-colors opacity-50 hover:opacity-100"
+                                className="p-1 hover:text-blue-400 transition-colors opacity-50 hover:opacity-100 min-h-[32px] min-w-[32px] sm:min-h-0 sm:min-w-0"
                                 title={revealedPasswords.has(s.id) ? 'Hide' : 'Show password'}
                               >
                                 {revealedPasswords.has(s.id)
@@ -248,7 +248,7 @@ export default function StaffManagement() {
                               </button>
                               <button
                                 onClick={() => handleCopy(s.plain_password, `pwd-${s.id}`)}
-                                className="p-1 hover:text-blue-400 transition-colors opacity-50 hover:opacity-100"
+                                className="p-1 hover:text-blue-400 transition-colors opacity-50 hover:opacity-100 min-h-[32px] min-w-[32px] sm:min-h-0 sm:min-w-0"
                                 title="Copy password"
                               >
                                 {copied === `pwd-${s.id}`
@@ -262,18 +262,18 @@ export default function StaffManagement() {
                           )}
                         </td>
 
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-2 sm:py-3 px-2 sm:px-4 text-right">
                           {/* View all credentials button */}
                           <button
                             onClick={() => setViewingCredentials(s)}
-                            className="p-1.5 hover:text-yellow-400 transition-colors mr-1"
+                            className="p-1.5 hover:text-yellow-400 transition-colors mr-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                             title="View credentials"
                           >
                             <Key size={15} />
                           </button>
                           <button
                             onClick={() => openEditForm(s)}
-                            className="p-1.5 hover:text-blue-400 transition-colors mr-1"
+                            className="p-1.5 hover:text-blue-400 transition-colors mr-1 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                             title="Edit staff"
                           >
                             <Edit2 size={16} />
@@ -281,7 +281,7 @@ export default function StaffManagement() {
                           <button
                             onClick={() => handleDelete(s.id, s.name)}
                             disabled={deletingId === s.id}
-                            className="p-1.5 hover:text-red-500 transition-colors disabled:opacity-40"
+                            className="p-1.5 hover:text-red-500 transition-colors disabled:opacity-40 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                             title="Remove staff"
                           >
                             {deletingId === s.id ? (
@@ -303,22 +303,22 @@ export default function StaffManagement() {
 
       {/* ✅ Permanent Credentials Modal — kisi bhi staff ka credentials dekho */}
       {viewingCredentials && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="glass-card w-full max-w-md p-6 rounded-2xl">
-            <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="glass-card w-full max-w-md p-4 sm:p-6 rounded-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
                   <Key size={18} className="text-yellow-400" />
                   {viewingCredentials.name}'s Credentials
                 </h2>
-                <p className="text-sm opacity-60 mt-1">Share these with the staff member</p>
+                <p className="text-xs sm:text-sm opacity-60 mt-1">Share these with the staff member</p>
               </div>
               <button
                 onClick={() => {
                   setViewingCredentials(null)
                   setShowPassword(false)
                 }}
-                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <X size={18} />
               </button>
@@ -329,12 +329,12 @@ export default function StaffManagement() {
               <div className="p-3 glass bg-white/10 rounded-lg">
                 <p className="text-xs opacity-50 mb-1">Login Email (Full)</p>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono font-medium text-sm">
+                  <span className="font-mono font-medium text-sm break-all">
                     {getLoginEmail(viewingCredentials.login_id)}
                   </span>
                   <button
                     onClick={() => handleCopy(getLoginEmail(viewingCredentials.login_id), 'vc-email')}
-                    className="p-1.5 hover:text-blue-400 transition-colors flex-shrink-0"
+                    className="p-2 hover:text-blue-400 transition-colors flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                     {copied === 'vc-email'
                       ? <Check size={15} className="text-green-400" />
@@ -349,19 +349,19 @@ export default function StaffManagement() {
                 <p className="text-xs opacity-50 mb-1">Password</p>
                 {viewingCredentials.plain_password ? (
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono font-medium">
+                    <span className="font-mono font-medium text-sm break-all">
                       {showPassword ? viewingCredentials.plain_password : '••••••••'}
                     </span>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button
                         onClick={() => setShowPassword(!showPassword)}
-                        className="p-1.5 hover:text-blue-400 transition-colors"
+                        className="p-2 hover:text-blue-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                       </button>
                       <button
                         onClick={() => handleCopy(viewingCredentials.plain_password, 'vc-pwd')}
-                        className="p-1.5 hover:text-blue-400 transition-colors"
+                        className="p-2 hover:text-blue-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         {copied === 'vc-pwd'
                           ? <Check size={15} className="text-green-400" />
@@ -384,7 +384,7 @@ export default function StaffManagement() {
                     `Login: ${getLoginEmail(viewingCredentials.login_id)}\nPassword: ${viewingCredentials.plain_password}`,
                     'vc-all'
                   )}
-                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 min-h-[44px]"
                 >
                   {copied === 'vc-all' ? <Check size={16} /> : <Copy size={16} />}
                   {copied === 'vc-all' ? 'Copied!' : 'Copy All Credentials'}
@@ -397,18 +397,18 @@ export default function StaffManagement() {
 
       {/* ✅ "Just Created" Credentials Modal */}
       {newCredentials && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="glass-card w-full max-w-md p-6 rounded-2xl">
-            <div className="flex items-center justify-between mb-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="glass-card w-full max-w-md p-4 sm:p-6 rounded-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
               <div>
-                <h2 className="text-xl font-bold text-green-400">✅ Staff Created!</h2>
-                <p className="text-sm opacity-60 mt-1">
+                <h2 className="text-lg sm:text-xl font-bold text-green-400">✅ Staff Created!</h2>
+                <p className="text-xs sm:text-sm opacity-60 mt-1">
                   Share these credentials with {newCredentials.name}
                 </p>
               </div>
               <button
                 onClick={() => { setNewCredentials(null); setShowPassword(false) }}
-                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <X size={18} />
               </button>
@@ -419,10 +419,10 @@ export default function StaffManagement() {
               <div className="p-3 glass bg-white/10 rounded-lg">
                 <p className="text-xs opacity-50 mb-1">Login Email (Full)</p>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono font-medium text-sm">{newCredentials.email}</span>
+                  <span className="font-mono font-medium text-sm break-all">{newCredentials.email}</span>
                   <button
                     onClick={() => handleCopy(newCredentials.email, 'nc-email')}
-                    className="p-1.5 hover:text-blue-400 transition-colors flex-shrink-0"
+                    className="p-2 hover:text-blue-400 transition-colors flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                     {copied === 'nc-email'
                       ? <Check size={15} className="text-green-400" />
@@ -436,19 +436,19 @@ export default function StaffManagement() {
               <div className="p-3 glass bg-white/10 rounded-lg">
                 <p className="text-xs opacity-50 mb-1">Password</p>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono font-medium">
+                  <span className="font-mono font-medium text-sm break-all">
                     {showPassword ? newCredentials.password : '••••••••'}
                   </span>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => setShowPassword(!showPassword)}
-                      className="p-1.5 hover:text-blue-400 transition-colors"
+                      className="p-2 hover:text-blue-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                     <button
                       onClick={() => handleCopy(newCredentials.password, 'nc-pwd')}
-                      className="p-1.5 hover:text-blue-400 transition-colors"
+                      className="p-2 hover:text-blue-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
                       {copied === 'nc-pwd'
                         ? <Check size={15} className="text-green-400" />
@@ -465,7 +465,7 @@ export default function StaffManagement() {
                   `Login: ${newCredentials.email}\nPassword: ${newCredentials.password}`,
                   'nc-all'
                 )}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 min-h-[44px]"
               >
                 {copied === 'nc-all' ? <Check size={16} /> : <Copy size={16} />}
                 {copied === 'nc-all' ? 'Copied!' : 'Copy All Credentials'}
@@ -482,27 +482,27 @@ export default function StaffManagement() {
       {/* Create / Edit Modal */}
       {showForm && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm"
           onClick={() => !submitting && setShowForm(false)}
         >
           <div
-            className="glass-card w-full max-w-md p-6 rounded-2xl"
+            className="glass-card w-full max-w-md p-4 sm:p-6 rounded-2xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
               <div>
-                <h2 className="text-xl font-bold">
+                <h2 className="text-lg sm:text-xl font-bold">
                   {editingStaff ? 'Edit Staff' : 'Create Staff Account'}
                 </h2>
                 {!editingStaff && (
-                  <p className="text-sm opacity-60 mt-1">
+                  <p className="text-xs sm:text-sm opacity-60 mt-1">
                     Staff will log in using their full email and password.
                   </p>
                 )}
               </div>
               <button
                 onClick={() => !submitting && setShowForm(false)}
-                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <X size={18} />
               </button>
@@ -510,27 +510,27 @@ export default function StaffManagement() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm mb-1 opacity-70">Full Name *</label>
+                <label className="block text-xs sm:text-sm mb-1 opacity-70">Full Name *</label>
                 <input
                   type="text"
                   placeholder="e.g. Rahul Sharma"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 />
               </div>
 
               <div>
-                <label className="block text-sm mb-1 opacity-70">Login ID *</label>
+                <label className="block text-xs sm:text-sm mb-1 opacity-70">Login ID *</label>
                 <input
                   type="text"
                   placeholder="e.g. rahul or rahul.sharma"
                   value={formData.login_id}
                   onChange={(e) => setFormData({ ...formData, login_id: e.target.value })}
-                  className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 />
                 {!editingStaff && formData.login_id && (
-                  <p className="text-xs text-blue-400 mt-1 font-mono">
+                  <p className="text-xs text-blue-400 mt-1 font-mono break-all">
                     Login email: {formData.login_id.toLowerCase().replace(/\s+/g, '.')}@staff.internal
                   </p>
                 )}
@@ -543,25 +543,25 @@ export default function StaffManagement() {
 
               {!editingStaff && (
                 <div>
-                  <label className="block text-sm mb-1 opacity-70">Password *</label>
+                  <label className="block text-xs sm:text-sm mb-1 opacity-70">Password *</label>
                   <input
                     type="password"
                     placeholder="Min. 6 characters"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-sm mb-1 opacity-70">Tag Name *</label>
+                <label className="block text-xs sm:text-sm mb-1 opacity-70">Tag Name *</label>
                 <input
                   type="text"
                   placeholder="e.g. @rahul"
                   value={formData.tag_name}
                   onChange={(e) => setFormData({ ...formData, tag_name: e.target.value })}
-                  className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 />
                 <p className="text-xs opacity-40 mt-1">Used in task assignment dropdowns</p>
               </div>
@@ -570,14 +570,14 @@ export default function StaffManagement() {
                 <button
                   onClick={() => !submitting && setShowForm(false)}
                   disabled={submitting}
-                  className="px-4 py-2 glass rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50"
+                  className="px-4 py-3 glass rounded-lg hover:bg-white/10 transition-colors disabled:opacity-50 min-h-[44px]"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 min-h-[44px]"
                 >
                   {submitting ? (
                     <>

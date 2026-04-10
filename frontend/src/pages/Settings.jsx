@@ -96,66 +96,66 @@ export default function Settings() {
   usePageRefresh(() => {}, [])
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Settings</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <h1 className="text-2xl sm:text-3xl font-bold">Settings</h1>
 
       {/* Profile Settings */}
       <GlassCard>
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-4 sm:mb-6">
           <div className="p-2 bg-blue-500/20 rounded-lg">
             <User size={20} className="text-blue-400" />
           </div>
-          <h2 className="text-xl font-semibold">Profile</h2>
+          <h2 className="text-lg sm:text-xl font-semibold">Profile</h2>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm mb-1 opacity-70">Full Name</label>
+            <label className="block text-xs sm:text-sm mb-1 opacity-70">Full Name</label>
             <input
               type="text"
               value={profileForm.name}
               onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
               placeholder="Your full name"
-              className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-1 opacity-70">Login ID</label>
+            <label className="block text-xs sm:text-sm mb-1 opacity-70">Login ID</label>
             <input
               type="text"
               value={profileForm.login_id}
               onChange={(e) => setProfileForm({ ...profileForm, login_id: e.target.value })}
               placeholder="your.login.id"
-              className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-1 opacity-70">Tag Name</label>
+            <label className="block text-xs sm:text-sm mb-1 opacity-70">Tag Name</label>
             <input
               type="text"
               value={profileForm.tag_name}
               onChange={(e) => setProfileForm({ ...profileForm, tag_name: e.target.value })}
               placeholder="@your_tag"
-              className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-1 opacity-70">Role</label>
+            <label className="block text-xs sm:text-sm mb-1 opacity-70">Role</label>
             <input
               type="text"
               value={profile?.role || ''}
               disabled
-              className="w-full p-3 glass bg-white/5 rounded-lg opacity-50 cursor-not-allowed"
+              className="w-full p-3 glass bg-white/5 rounded-lg opacity-50 cursor-not-allowed text-base"
             />
           </div>
 
           <button
             onClick={handleProfileSave}
             disabled={savingProfile}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition-colors min-h-[44px] w-full sm:w-auto"
           >
             <Save size={16} />
             {savingProfile ? 'Saving...' : 'Save Profile'}
@@ -165,23 +165,23 @@ export default function Settings() {
 
       {/* Appearance Settings */}
       <GlassCard>
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-4 sm:mb-6">
           <div className="p-2 bg-purple-500/20 rounded-lg">
             <Palette size={20} className="text-purple-400" />
           </div>
-          <h2 className="text-xl font-semibold">Appearance</h2>
+          <h2 className="text-lg sm:text-xl font-semibold">Appearance</h2>
         </div>
 
         <div className="space-y-6">
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div>
-              <p className="font-medium">Dark Mode</p>
-              <p className="text-sm opacity-60">Toggle between light and dark theme</p>
+              <p className="font-medium text-sm sm:text-base">Dark Mode</p>
+              <p className="text-xs sm:text-sm opacity-60">Toggle between light and dark theme</p>
             </div>
             <button
               onClick={toggleDarkMode}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex items-center justify-center gap-2 px-4 py-3 sm:py-2 rounded-lg transition-colors min-h-[44px] ${
                 darkMode ? 'bg-blue-600 text-white' : 'glass bg-white/10'
               }`}
             >
@@ -191,12 +191,12 @@ export default function Settings() {
           </div>
 
           <div>
-            <p className="font-medium mb-1">Background Image</p>
-            <p className="text-sm opacity-60 mb-3">
+            <p className="font-medium text-sm sm:text-base mb-1">Background Image</p>
+            <p className="text-xs sm:text-sm opacity-60 mb-3">
               Upload a background — all staff in your company will see it too
             </p>
 
-            <div className="flex flex-col sm:flex-row items-start gap-4">
+            <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
               <input
                 type="file"
                 accept="image/*"
@@ -211,7 +211,7 @@ export default function Settings() {
 
             {backgroundImage && (
               <div className="mt-4 space-y-3">
-                <p className="text-sm opacity-60">Current background:</p>
+                <p className="text-xs sm:text-sm opacity-60">Current background:</p>
                 <img
                   src={backgroundImage}
                   alt="Current background"
@@ -219,7 +219,7 @@ export default function Settings() {
                 />
                 <button
                   onClick={handleRemoveBackground}
-                  className="text-sm text-red-400 hover:text-red-300 transition-colors"
+                  className="text-sm text-red-400 hover:text-red-300 transition-colors min-h-[44px]"
                 >
                   Remove background
                 </button>
@@ -231,16 +231,16 @@ export default function Settings() {
 
       {profile?.role === 'admin' && (
         <GlassCard>
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
             <div className="p-2 bg-green-500/20 rounded-lg">
               <Building2 size={20} className="text-green-400" />
             </div>
-            <h2 className="text-xl font-semibold">Company</h2>
+            <h2 className="text-lg sm:text-xl font-semibold">Company</h2>
           </div>
 
           <div className="space-y-3">
             <div>
-              <label className="block text-sm mb-1 opacity-70">Company ID</label>
+              <label className="block text-xs sm:text-sm mb-1 opacity-70">Company ID</label>
               <input
                 type="text"
                 value={profile?.company_id || ''}

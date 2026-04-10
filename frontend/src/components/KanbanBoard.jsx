@@ -95,7 +95,7 @@ export default function KanbanBoard({ type = 'tasks' }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="flex justify-center py-8 sm:py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     )
@@ -108,7 +108,7 @@ export default function KanbanBoard({ type = 'tasks' }) {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 -mx-1 px-1 sm:mx-0 sm:px-0">
         {columnList.map((column) => (
           <SortableContext
             key={column}
@@ -130,9 +130,9 @@ export default function KanbanBoard({ type = 'tasks' }) {
           <motion.div
             initial={{ scale: 0.9 }}
             animate={{ scale: 1.05 }}
-            className="glass-card p-4 shadow-2xl"
+            className="glass-card p-3 sm:p-4 shadow-2xl"
           >
-            <p className="font-medium">
+            <p className="font-medium text-sm sm:text-base">
               {items.find((i) => i.id === activeId)?.task ||
                 items.find((i) => i.id === activeId)?.company_name}
             </p>

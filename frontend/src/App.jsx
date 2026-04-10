@@ -27,7 +27,12 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Toaster position="top-right" toastOptions={{ className: 'glass-card !bg-white/80 dark:!bg-gray-800/80' }} />
+      <Toaster 
+        position="top-right" 
+        toastOptions={{ 
+          className: 'glass-card !bg-white/80 dark:!bg-gray-800/80 w-[calc(100vw-2rem)] max-w-sm sm:w-auto sm:max-w-md' 
+        }} 
+      />
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />

@@ -22,10 +22,10 @@ export default function KanbanCard({ item, type }) {
       style={style}
       {...attributes}
       {...listeners}
-      className="glass bg-white/10 dark:bg-gray-800/20 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:shadow-lg transition-shadow"
+      className="glass bg-white/10 dark:bg-gray-800/20 rounded-lg p-3 sm:p-3 cursor-grab active:cursor-grabbing hover:shadow-lg transition-shadow min-h-[44px]"
     >
-      <p className="font-medium text-sm mb-1">{getTitle()}</p>
-      <div className="flex items-center justify-between text-xs opacity-70">
+      <p className="font-medium text-sm sm:text-base mb-1">{getTitle()}</p>
+      <div className="flex items-center justify-between text-xs sm:text-sm opacity-70">
         <span>{item.assigned_to || 'Unassigned'}</span>
         {item.due_date && <span>{new Date(item.due_date).toLocaleDateString()}</span>}
       </div>

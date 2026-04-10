@@ -31,3 +31,54 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-gray-400/50 rounded-full;
 }
+
+/* Mobile Responsive Enhancements */
+@media (max-width: 640px) {
+  .glass-card {
+    @apply p-4 rounded-xl;
+  }
+  
+  .glass-nav {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  /* Improve touch targets for mobile */
+  button, 
+  [role="button"],
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
+
+  /* Adjust font sizes for better mobile readability */
+  body {
+    font-size: 16px;
+  }
+
+  /* Ensure modals and overlays are full width on small screens */
+  .fixed.inset-0 > .glass-card {
+    max-width: 100%;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+  }
+
+  /* Smooth scrolling for mobile */
+  html {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .glass-card {
+    @apply p-5;
+  }
+}
+
+/* Prevent zoom on input focus for mobile devices */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}

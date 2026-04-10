@@ -59,67 +59,67 @@ export default function DispatchForm({ dispatch, onClose, onSuccess }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
-        className="glass-card w-full max-w-lg"
+        className="glass-card w-full max-w-lg max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">{dispatch ? 'Edit Dispatch' : 'New Dispatch'}</h2>
-          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-bold">{dispatch ? 'Edit Dispatch' : 'New Dispatch'}</h2>
+          <button onClick={onClose} className="p-2 sm:p-1 hover:bg-white/20 rounded">
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
-            <label className="block text-sm mb-1">Party Name *</label>
+            <label className="block text-xs sm:text-sm mb-1">Party Name *</label>
             <input
               type="text"
               required
               value={formData.party_name}
               onChange={(e) => setFormData({ ...formData, party_name: e.target.value })}
-              className="w-full p-2 glass bg-white/10 rounded-lg"
+              className="w-full p-3 sm:p-2 glass bg-white/10 rounded-lg text-base"
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Location</label>
+            <label className="block text-xs sm:text-sm mb-1">Location</label>
             <input
               type="text"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="w-full p-2 glass bg-white/10 rounded-lg"
+              className="w-full p-3 sm:p-2 glass bg-white/10 rounded-lg text-base"
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Contact Details</label>
+            <label className="block text-xs sm:text-sm mb-1">Contact Details</label>
             <input
               type="text"
               value={formData.contact_details}
               onChange={(e) => setFormData({ ...formData, contact_details: e.target.value })}
-              className="w-full p-2 glass bg-white/10 rounded-lg"
+              className="w-full p-3 sm:p-2 glass bg-white/10 rounded-lg text-base"
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Items</label>
+            <label className="block text-xs sm:text-sm mb-1">Items</label>
             <textarea
               value={formData.items}
               onChange={(e) => setFormData({ ...formData, items: e.target.value })}
-              className="w-full p-2 glass bg-white/10 rounded-lg"
+              className="w-full p-3 sm:p-2 glass bg-white/10 rounded-lg text-base"
               rows="2"
               placeholder="List items to dispatch"
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Assigned To</label>
+            <label className="block text-xs sm:text-sm mb-1">Assigned To</label>
             <select
               value={formData.assigned_to}
               onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
-              className="w-full p-2 glass bg-white/10 rounded-lg"
+              className="w-full p-3 sm:p-2 glass bg-white/10 rounded-lg text-base"
             >
               <option value="">Unassigned</option>
               {staffList.map((staff) => (
@@ -130,11 +130,11 @@ export default function DispatchForm({ dispatch, onClose, onSuccess }) {
             </select>
           </div>
           <div>
-            <label className="block text-sm mb-1">Status</label>
+            <label className="block text-xs sm:text-sm mb-1">Status</label>
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full p-2 glass bg-white/10 rounded-lg"
+              className="w-full p-3 sm:p-2 glass bg-white/10 rounded-lg text-base"
             >
               <option>Pending</option>
               <option>In Transit</option>
@@ -142,20 +142,20 @@ export default function DispatchForm({ dispatch, onClose, onSuccess }) {
             </select>
           </div>
           <div>
-            <label className="block text-sm mb-1">Remarks</label>
+            <label className="block text-xs sm:text-sm mb-1">Remarks</label>
             <textarea
               value={formData.remarks}
               onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-              className="w-full p-2 glass bg-white/10 rounded-lg"
+              className="w-full p-3 sm:p-2 glass bg-white/10 rounded-lg text-base"
               rows="2"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 glass rounded-lg">
+          <div className="flex justify-end gap-3 pt-3 sm:pt-4">
+            <button type="button" onClick={onClose} className="px-4 py-3 sm:px-4 sm:py-2 glass rounded-lg">
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">
+            <button type="submit" className="px-4 py-3 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg">
               {dispatch ? 'Update' : 'Create'} Dispatch
             </button>
           </div>

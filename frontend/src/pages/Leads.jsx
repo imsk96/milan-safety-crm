@@ -72,23 +72,23 @@ export default function Leads() {
   })
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Leads Management</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Leads Management</h1>
 
         <button
           onClick={() => {
             setEditingLead(null)
             setShowForm(true)
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-3 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors min-h-[44px]"
         >
           <Plus size={18} /> Add Lead
         </button>
       </div>
 
       <GlassCard>
-        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
           <div className="relative flex-1">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -99,14 +99,14 @@ export default function Leads() {
               placeholder="Search leads..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-3 sm:py-2 glass bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 glass bg-white/10 rounded-lg focus:outline-none"
+            className="px-4 py-3 sm:py-2 glass bg-white/10 rounded-lg focus:outline-none text-base min-h-[44px]"
           >
             <option value="all">All Status</option>
             <option value="New">New</option>
@@ -115,17 +115,17 @@ export default function Leads() {
           </select>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <table className="w-full text-sm sm:text-base">
             <thead>
               <tr className="border-b border-white/20">
-                <th className="text-left py-3 px-4">Company</th>
-                <th className="text-left py-3 px-4">Contact</th>
-                <th className="text-left py-3 px-4">Product</th>
-                <th className="text-left py-3 px-4">Assigned To</th>
-                <th className="text-left py-3 px-4">Status</th>
-                <th className="text-left py-3 px-4">Follow-up</th>
-                <th className="text-right py-3 px-4">Actions</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Company</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Contact</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Product</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Assigned To</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Status</th>
+                <th className="text-left py-2 sm:py-3 px-2 sm:px-4">Follow-up</th>
+                <th className="text-right py-2 sm:py-3 px-2 sm:px-4">Actions</th>
               </tr>
             </thead>
 
@@ -148,24 +148,24 @@ export default function Leads() {
                     key={lead.id}
                     className="border-b border-white/10 hover:bg-white/5"
                   >
-                    <td className="py-3 px-4 font-medium">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 font-medium">
                       {lead.company_name}
                     </td>
 
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       <div>{lead.contact_name}</div>
-                      <div className="text-sm opacity-70">{lead.phone}</div>
+                      <div className="text-xs sm:text-sm opacity-70">{lead.phone}</div>
                     </td>
 
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       {lead.product_required}
                     </td>
 
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       {lead.assigned_to || '-'}
                     </td>
 
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${getStatusColor(
                           lead.status
@@ -175,24 +175,24 @@ export default function Leads() {
                       </span>
                     </td>
 
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
                       {formatDate(lead.follow_up_date)}
                     </td>
 
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-right">
                       <button
                         onClick={() => {
                           setEditingLead(lead)
                           setShowForm(true)
                         }}
-                        className="p-1 hover:text-blue-500 mr-2"
+                        className="p-1 hover:text-blue-500 mr-2 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                       >
                         <Edit2 size={16} />
                       </button>
 
                       <button
                         onClick={() => handleDelete(lead.id)}
-                        className="p-1 hover:text-red-500"
+                        className="p-1 hover:text-red-500 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
                       >
                         <Trash2 size={16} />
                       </button>
