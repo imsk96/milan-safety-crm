@@ -66,7 +66,12 @@ export default function Dashboard() {
         dispatch: {
           total: dispatch.length,
           pending: dispatch.filter(d => d.status === 'Pending').length,
-          transit: dispatch.filter(d => d.status === 'In transit').length,
+
+          // ✅ ONLY FIX DONE HERE
+          transit: dispatch.filter(d =>
+            d.status?.toLowerCase().trim() === 'in transit'
+          ).length,
+
           delivered: dispatch.filter(d => d.status === 'Delivered').length,
         },
         visits: {
@@ -110,7 +115,6 @@ export default function Dashboard() {
 
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444']
 
-  // ✅ LOADING FIX
   if (loading) {
     return (
       <div className="flex justify-center items-center h-40 text-gray-400">
