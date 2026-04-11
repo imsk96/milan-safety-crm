@@ -1,10 +1,15 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabaseClient'
 
+// ✅ Detect mobile at load
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
 export const useAppStore = create((set, get) => ({
   darkMode: localStorage.getItem('theme') === 'dark',
   backgroundImage: null,
-  sidebarOpen: true,
+
+  // ✅ FIX: mobile pe closed, desktop pe open
+  sidebarOpen: !isMobile,
 
   toggleDarkMode: () => {
     const newMode = !get().darkMode
@@ -14,6 +19,13 @@ export const useAppStore = create((set, get) => ({
   },
 
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
+
+  // ✅ NEW: mobile safe close helper (optional but powerful)
+  closeSidebarIfMobile: () => {
+    if (window.innerWidth < 768) {
+      set({ sidebarOpen: false })
+    }
+  },
 
   // ✅ Fetch background (safe)
   fetchBackground: async (companyId) => {
@@ -65,5 +77,18 @@ export const useAppStore = create((set, get) => ({
   initialize: () => {
     const isDark = get().darkMode
     document.documentElement.classList.toggle('dark', isDark)
+
+    // ✅ FIX: resize handler for responsive sidebar
+    if (typeof window !== 'undefined') {
+      const handleResize = () => {
+        if (window.innerWidth < 768) {
+          set({ sidebarOpen: false })
+        } else {
+          set({ sidebarOpen: true })
+        }
+      }
+
+      window.addEventListener('resize', handleResize)
+    }
   },
 }))
