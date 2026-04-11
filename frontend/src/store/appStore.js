@@ -8,7 +8,7 @@ export const useAppStore = create((set, get) => ({
   darkMode: localStorage.getItem('theme') === 'dark',
   backgroundImage: null,
 
-  // ✅ FIX: mobile pe closed, desktop pe open
+  // ✅ Mobile closed | Desktop open
   sidebarOpen: !isMobile,
 
   toggleDarkMode: () => {
@@ -20,14 +20,14 @@ export const useAppStore = create((set, get) => ({
 
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
 
-  // ✅ NEW: mobile safe close helper (optional but powerful)
+  // ✅ Auto close on mobile
   closeSidebarIfMobile: () => {
     if (window.innerWidth < 768) {
       set({ sidebarOpen: false })
     }
   },
 
-  // ✅ Fetch background (safe)
+  // ✅ Fetch background (same)
   fetchBackground: async (companyId) => {
     if (!companyId) return
     try {
@@ -45,7 +45,7 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
-  // ✅ FIXED: Robust UPSERT (multi-tenant safe + no null id issue)
+  // ✅ Update background (same)
   updateBackground: async (url) => {
     const { useAuthStore } = await import('./authStore')
     const companyId = useAuthStore.getState().profile?.company_id
@@ -74,21 +74,24 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
+  // ✅ INITIALIZE (FIXED)
   initialize: () => {
     const isDark = get().darkMode
     document.documentElement.classList.toggle('dark', isDark)
 
-    // ✅ FIX: resize handler for responsive sidebar
+    // ✅ Prevent multiple listeners (IMPORTANT FIX)
     if (typeof window !== 'undefined') {
-      const handleResize = () => {
-        if (window.innerWidth < 768) {
-          set({ sidebarOpen: false })
-        } else {
-          set({ sidebarOpen: true })
+      if (!window.__sidebarResizeHandler__) {
+        window.__sidebarResizeHandler__ = () => {
+          if (window.innerWidth < 768) {
+            set({ sidebarOpen: false })
+          } else {
+            set({ sidebarOpen: true })
+          }
         }
-      }
 
-      window.addEventListener('resize', handleResize)
+        window.addEventListener('resize', window.__sidebarResizeHandler__)
+      }
     }
   },
 }))

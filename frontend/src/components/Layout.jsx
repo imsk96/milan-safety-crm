@@ -32,7 +32,7 @@ export default function Layout() {
       <div className="relative z-10">
         <Sidebar />
         <TopNav />
-        <main className="pt-14 sm:pt-16 md:pl-64">
+        <main className={`pt-14 sm:pt-16 ${window.innerWidth >= 768 ? 'md:pl-64' : ''}`}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
